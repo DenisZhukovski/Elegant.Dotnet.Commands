@@ -32,8 +32,8 @@ steps:
     SonarCloud: 'Sonar Cloud'
     organization: 'deniszhukovski'
     scannerMode: 'MSBuild'
-    projectKey: 'DenisZhukovski_WebRequest.Elegant'
-    projectName: 'WebRequest.Elegant'
+    projectKey: 'DenisZhukovski_Dotnet.Commands'
+    projectName: 'Dotnet.Commands'
 
 - task: VSBuild@1
   inputs:
@@ -54,7 +54,7 @@ steps:
   inputs:
     codeCoverageTool: Cobertura
     summaryFileLocation: '**/*.cobertura.xml'
-    
+
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
