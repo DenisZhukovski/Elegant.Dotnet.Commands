@@ -6,8 +6,7 @@
 trigger:
   branches:
     include:
-    - master
-    - develop
+    - main
     - release/*
   paths:
     exclude:
@@ -35,54 +34,28 @@ steps:
     scannerMode: 'MSBuild'
     projectKey: 'DenisZhukovski_WebRequest.Elegant'
     projectName: 'WebRequest.Elegant'
+
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: VSTest@2
-  displayName: 'Run unit tests'
+- task: DotNetCoreCLI@2
+  displayName: 'Run tests'
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: | # Required when testSelector == TestAssemblies
-     **\*Tests*.dll
-     !**\*TestAdapter.dll
-     !**\obj\** 
-    searchFolder: '$(System.DefaultWorkingDirectory)'
-    codeCoverageEnabled: true
-
-- task: PublishTestResults@2
-  displayName: 'Publish Test Results **/*.trx'
-  inputs:
-    testResultsFormat: VSTest
-    testResultsFiles: '**/*.trx'
-    searchFolder: '$(Build.SourcesDirectory)'
-    failTaskOnFailedTests: true
-    testRunTitle: 'Unit tests'
+    command: 'test'
+    projects: '**/*[Tt]est*/*.csproj'
+    publishTestResults: true
+    arguments: '--configuration $(BuildConfiguration) /p:CollectCoverage=true "/p:CoverletOutputFormat=\"opencover,Cobertura\""'
 
 - task: PublishCodeCoverageResults@1
   displayName: 'Publish code coverage result'
   inputs:
     codeCoverageTool: Cobertura
     summaryFileLocation: '**/*.cobertura.xml'
-    reportDirectory: '$(Build.SourcesDirectory)/CodeCoverageResults'
-
+    
 - task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
     pollingTimeoutSec: '300'
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'pack'
-#     packagesToPack: '**/*.csproj'
-#     versioningScheme: 'byPrereleaseNumber'
-
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'push'
-#     packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-#     nuGetFeedType: 'external'
-#     publishFeedCredentials: 'WebRequest.Elegant'
