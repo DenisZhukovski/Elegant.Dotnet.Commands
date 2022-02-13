@@ -69,7 +69,6 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public async Task AwaitAsyncCommandExecution()
         {
-            var commands = new Commands();
             int executionsCount = 0;
             Func<Task> longTaskHandler = async () => {
                 await Task.Delay(500);
@@ -79,6 +78,22 @@ namespace Dotnet.Commands.UnitTests
             await new Commands()
                 .AsyncCommand(longTaskHandler)
                 .ExecuteAsync(null);
+
+            Assert.Equal(1, executionsCount);
+        }
+
+        [Fact]
+        public void SyncRunForAsyncCommandExecution()
+        {
+            int executionsCount = 0;
+            Func<Task> longTaskHandler = async () => {
+                await Task.Delay(2000);
+                executionsCount++;
+            };
+
+            new Commands().Cached()
+                .AsyncCommand(longTaskHandler)
+                .Execute(null);
 
             Assert.Equal(1, executionsCount);
         }
