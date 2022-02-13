@@ -43,9 +43,14 @@ namespace Dotnet.Commands
             return CanExecute((TypeArgument)parameter);
         }
 
+        public void Execute(object parameter)
+        {
+            Execute((TypeArgument)parameter);
+        }
+
         public void Execute(TypeArgument parameter)
         {
-            ExecuteAsync(parameter).RunSync();
+            _ = ExecuteAsync(parameter);
         }
 
         public Task ExecuteAsync(object parameter)
@@ -53,22 +58,19 @@ namespace Dotnet.Commands
             return ExecuteAsync((TypeArgument)parameter);
         }
 
-        public void Execute(object parameter)
-        {
-            Execute((TypeArgument)parameter);
-        }
-
         protected void RaiseCanExecuteChanged()
         {
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public async Task ExecuteAsync(TypeArgument parameter)
+        public Task ExecuteAsync(TypeArgument parameter)
         {
             if (CanExecute(parameter))
             {
-                await _action(parameter);
+                return _action(parameter);
             }
+
+            return Task.CompletedTask;
         }
     }
 }
