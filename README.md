@@ -9,6 +9,7 @@ The repository implements [Command pattern](https://en.wikipedia.org/wiki/Comman
 The main entity is [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) class. The class is commands object factory. It creates a command for an action delegate which is passed into Command method.
 
 ```cs
+// Validated() extension method adds argument null checks to all public methods
 var commands = new Commands().Validated();
 var command = commands.Command(
     ()=> { /* some logic here */ }, 
@@ -19,7 +20,7 @@ var command = commands.Command(
 
 ## Async Command
 
-Commands factory also supports async commands delegates.
+Commands factory also supports async commands delegates. It can be especially useful in unit tests. Sometimes the unit test has to wait while command async delegate will be executed before it can check the result.
 
 ```cs
 var commands = new Commands().Validated();
@@ -29,24 +30,26 @@ var asyncCommand = commands.AsyncCommand(
     CanExecute
 );
 
+await asyncCommnad.ExecuteAsync();
+
 ```
 
 ## Cached commands
 
-Somethimes it can be handy to cache the command once its been created by [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory.
+Somethimes it can be handy to cache the command once its been created by [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory. Especially useful case is view models.
 
 ```cs
 
 private CachedCommands _commands;
 
-public ViewModel()
+public ViewModel(ICommmands commands)
 {
-    _commands = new Commands().Validated().Cached();
+    _commands = commands.Cached();
 }
 
 /* 
     Here the command will be create only once
-    All the other calls of this property will be using the commands cache. Under the hood CallerMemberName attribute is used to detect the same call.
+    All the other calls of this property will be using the commands cache.
  */
 public ICommand FooCommand => _commands.Command(
     OnFooDelegate, 
@@ -55,6 +58,8 @@ public ICommand FooCommand => _commands.Command(
 
 ```
 
+**Important:** _Under the hood [CachedCommands](https://github.com/DenisZhukovski/Elegant.Dotnet.Commands/blob/main/src/Commands/CachedCommands.cs) uses [CallerMemberName](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.callermembernameattribute?view=net-6.0) attribute to detect the same call. It means this entity should be created for each view model independently otherwise the collisions are possible._
+
 ## Single command execution lock
 
  By default [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory supports single command execution stargety. [SingleCommandExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/SingleCommandExecutionLock.cs) entity is used to make it possible. The class is responsible for checking if any command is still executing once a new execution request comes for a command. If so the new execution command will be just ignored.
@@ -62,3 +67,42 @@ public ICommand FooCommand => _commands.Command(
 ## Navigation command execution lock
 
  Sometimes it can be useluf to lock the command execution once navigation operation is in progress. [NavigationExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/NavigationExecutionLock.cs) entity can be used to make it possible. The class is responsible for checking if any navigation process is still happenning once a new execution request comes for a command. If so the new execution command will be just ignored.
+
+## Useful extensions
+
+Usually navigation flow should be happening on UI Thread. This extension method tries to make the navigation flow to happen always on UI Thread.
+
+```cs
+
+public static class CommandsExtensions
+{
+    public static IAsyncCommand NavigationCommand(
+        this CachedCommands commands,
+        Func<Task<INavigationResult>> onNavigation,
+        [CallerMemberName] string? name = null)
+    {
+        return commands.AsyncCommand(() =>
+        {
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+            Device.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    var navigationResult = await onNavigation();
+                    if (navigationResult.Exception != null)
+                    {
+                        throw navigationResult.Exception;
+                    }
+                    taskCompletionSource.SetResult(true);
+                }
+                catch (Exception ex)
+                {
+                    taskCompletionSource.SetException(ex);
+                }
+            });
+            return taskCompletionSource.Task;
+        }, name: name);
+    }
+}
+
+```
