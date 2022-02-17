@@ -8,13 +8,25 @@ namespace Dotnet.Commands
 	{
 		bool IsLocked { get; }
 
-		IAsyncCommand AsyncCommand(Func<Task> execute, Func<bool>? canExecute = null);
+		IAsyncCommand AsyncCommand(
+			Func<Task> execute,
+			Func<bool>? canExecute = null,
+			bool forceExecution = false);
 
-        IAsyncCommand<TParam> AsyncCommand<TParam>(Func<TParam, Task> execute, Func<TParam, bool>? canExecute = null);
+        IAsyncCommand<TParam> AsyncCommand<TParam>(
+			Func<TParam, Task> execute,
+			Func<TParam, bool>? canExecute = null,
+			bool forceExecution = false);
 
-		ICommand Command(Action execute, Func<bool>? canExecute = null);
+		ICommand Command(
+			Action execute,
+			Func<bool>? canExecute = null,
+			bool forceExecution = false);
 
-		ICommand Command<TParam>(Action<TParam> execute, Func<TParam, bool>? canExecute = null);
+		ICommand Command<TParam>(
+			Action<TParam> execute,
+			Func<TParam, bool>? canExecute = null,
+			bool forceExecution = false);
 
 		void ForceRelease();
 	}

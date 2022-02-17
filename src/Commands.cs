@@ -25,15 +25,30 @@ namespace Dotnet.Commands
 			_commandExecutionLock = commandExecutionLock;
 		}
 
-		public IAsyncCommand AsyncCommand(Func<Task> execute, Func<bool>? canExecute = null)
+		public IAsyncCommand AsyncCommand(
+			Func<Task> execute,
+			Func<bool>? canExecute = null,
+			bool forceExecution = false)
 		{
-			return AsyncCommand<object>(o => execute(), o => CanExecute(canExecute));
+			return AsyncCommand<object>(
+				o => execute(),
+				o => CanExecute(canExecute),
+				forceExecution
+			);
 		}
 
-		public IAsyncCommand<TParam> AsyncCommand<TParam>(Func<TParam, Task> execute, Func<TParam, bool>? canExecute = null)
+		public IAsyncCommand<TParam> AsyncCommand<TParam>(
+			Func<TParam, Task> execute,
+			Func<TParam, bool>? canExecute = null,
+			bool forceExecution = false)
 		{
 			Func<TParam, Task> func = async param =>
 			{
+				if (forceExecution)
+                {
+					await ExceptionHandledExecution(execute, param);
+					return;
+				}
 				if (IsLocked)
 				{
 					return;
@@ -48,17 +63,7 @@ namespace Dotnet.Commands
 					}
 
 					currentLockIndex = Interlocked.Increment(ref _lockIndex);
-					try
-					{
-						await execute(param);
-					}
-					catch (Exception e)
-					{
-						if (!HandleException(e))
-						{
-							throw;
-						}
-					}
+					await ExceptionHandledExecution(execute, param);
 				}
 				finally
 				{
@@ -78,15 +83,31 @@ namespace Dotnet.Commands
 			_commandExecutionLock.FreeExecutionLock();
 		}
 
-		public ICommand Command(Action execute, Func<bool>? canExecute = null)
+		public ICommand Command(
+			Action execute,
+			Func<bool>? canExecute = null,
+			bool forceExecution = false)
 		{
-			return Command<object>(o => execute(), o => CanExecute(canExecute));
+			return Command<object>(
+				o => execute(),
+				o => CanExecute(canExecute),
+				forceExecution
+			);
 		}
 
-		public ICommand Command<TParam>(Action<TParam> execute, Func<TParam, bool>? canExecute = null)
+		public ICommand Command<TParam>(
+			Action<TParam> execute,
+			Func<TParam, bool>? canExecute = null,
+			bool forceExecution = false)
 		{
 			Action<TParam> act = p =>
 			{
+				if (forceExecution)
+                {
+					execute(p);
+					return;
+				}
+
 				if (_commandExecutionLock.IsLocked)
 				{
 					return;
@@ -113,6 +134,21 @@ namespace Dotnet.Commands
 		protected virtual bool HandleException(Exception e)
 		{
 			return false;
+		}
+
+		private async Task ExceptionHandledExecution<TParam>(Func<TParam, Task> execute, TParam param)
+		{
+			try
+			{
+				await execute(param);
+			}
+			catch (Exception e)
+			{
+				if (!HandleException(e))
+				{
+					throw;
+				}
+			}
 		}
 
 		private bool CanExecute<TParam>(TParam par, Func<TParam, bool>? canExecute = null)
