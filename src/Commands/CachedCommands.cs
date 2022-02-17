@@ -21,48 +21,52 @@ namespace Dotnet.Commands
         public ICommand Command(
             Action execute,
             Func<bool>? canExecute = null,
+            bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
             _ = name ?? throw new ArgumentNullException(nameof(name));
             return _cache.GetOrAdd(
                 name,
-                () => _commands.Command(execute, canExecute)
+                () => _commands.Command(execute, canExecute, forceExecution)
             );
         }
 
         public ICommand Command<TParam>(
             Action<TParam> execute,
             Func<TParam, bool>? canExecute = null,
+            bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
             _ = name ?? throw new ArgumentNullException(nameof(name));
             return _cache.GetOrAdd(
                 name,
-                () => _commands.Command(execute, canExecute)
+                () => _commands.Command(execute, canExecute, forceExecution)
             );
         }
 
         public IAsyncCommand AsyncCommand(
             Func<Task> execute,
             Func<bool>? canExecute = null,
+            bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
             _ = name ?? throw new ArgumentNullException(nameof(name));
             return (IAsyncCommand)_cache.GetOrAdd(
                 name,
-                () => _commands.AsyncCommand(execute, canExecute)
+                () => _commands.AsyncCommand(execute, canExecute, forceExecution)
             );
         }
 
         public IAsyncCommand AsyncCommand<TParam>(
             Func<TParam, Task> execute,
             Func<TParam, bool>? canExecute = null,
+            bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
             _ = name ?? throw new ArgumentNullException(nameof(name));
             return (IAsyncCommand)_cache.GetOrAdd(
                 name,
-                () => _commands.AsyncCommand(execute, canExecute)
+                () => _commands.AsyncCommand(execute, canExecute, forceExecution)
             );
         }
 

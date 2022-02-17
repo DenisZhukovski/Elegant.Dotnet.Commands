@@ -70,30 +70,12 @@ namespace Dotnet.Commands.UnitTests
         public async Task AwaitAsyncCommandExecution()
         {
             int executionsCount = 0;
-            Func<Task> longTaskHandler = async () => {
-                await Task.Delay(500);
-                executionsCount++;
-            };
-
             await new Commands()
-                .AsyncCommand(longTaskHandler)
+                .AsyncCommand(async () => {
+                    await Task.Delay(500);
+                    executionsCount++;
+                })
                 .ExecuteAsync(null);
-
-            Assert.Equal(1, executionsCount);
-        }
-
-        [Fact]
-        public void SyncRunForAsyncCommandExecution()
-        {
-            int executionsCount = 0;
-            Func<Task> longTaskHandler = async () => {
-                await Task.Delay(2000);
-                executionsCount++;
-            };
-
-            new Commands().Cached()
-                .AsyncCommand(longTaskHandler)
-                .Execute(null);
 
             Assert.Equal(1, executionsCount);
         }
