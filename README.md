@@ -62,7 +62,20 @@ public ICommand FooCommand => _commands.Command(
 
 ## Single command execution lock
 
- By default [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory supports single command execution stargety. [SingleCommandExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/SingleCommandExecutionLock.cs) entity is used to make it possible. The class is responsible for checking if any command is still executing once a new execution request comes for a command. If so the new execution command will be just ignored.
+ By default [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory supports single command execution strategy. [SingleCommandExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/SingleCommandExecutionLock.cs) entity is used to make it possible. The class is responsible for checking if any command is still executing once a new execution request comes for a command. If so the new execution command will be just ignored.
+ There is a way to force a command execution even when other command execution is still in progress.
+
+ ```cs
+var commnand = _commands.Command(
+    OnFooDelegate, 
+    CanExecute,
+    forceExecution: true
+);
+// The command OnFooDelegate will be executed even if
+// the execution flow is globally locked in commands factory.
+command.Execute();
+
+```
 
 ## Navigation command execution lock
 
