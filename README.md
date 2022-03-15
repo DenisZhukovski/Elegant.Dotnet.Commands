@@ -119,3 +119,19 @@ public static class CommandsExtensions
 }
 
 ```
+
+## In Unit Tests
+
+Its important to now that by default commands factory has DefaultCommandExecutionInterval parameter
+
+```cs
+
+/// <summary>
+/// This interval is necessary to avoid multi tapping command from the user
+/// It can happen when user clicks simuntainiusly on several buttons on the screen
+/// </summary>
+public static int DefaultCommandExecutionInterval = 300;
+
+```
+
+As a result it can affect unit tests execution process when commands can execute in concurrency. Its possible to set it to 0 once commands factory is created.
