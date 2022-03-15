@@ -4,19 +4,16 @@ namespace Dotnet.Commands
 {
 	public class SingleCommandExecutionLock : ICommandExecutionLock
 	{
-		/// <summary>
-		/// This interval is necessary to avoid multi tapping command from the user
-		/// It can happen when user clicks simuntainiusly on several buttons on the screen
-		/// </summary>
-		public static int CommandExecutionInterval = 300;
 		private readonly object _lockObject;
-		private bool _isExecutionLock;
+        private readonly int _commandExecutionInterval;
+        private bool _isExecutionLock;
 
-		public SingleCommandExecutionLock()
+		public SingleCommandExecutionLock(int commandExecutionInterval)
 		{
 			_lockObject = new object();
 			_isExecutionLock = false;
-		}
+            _commandExecutionInterval = commandExecutionInterval;
+        }
 
 		public bool IsLocked
 		{
@@ -49,7 +46,11 @@ namespace Dotnet.Commands
 
 		public async Task<bool> FreeExecutionLock()
 		{
-			await Task.Delay(CommandExecutionInterval);
+			if (_commandExecutionInterval > 0)
+            {
+				await Task.Delay(_commandExecutionInterval);
+			}
+			
 			if (!_isExecutionLock)
 			{
 				return false;
@@ -61,7 +62,6 @@ namespace Dotnet.Commands
 				{
 					return false;
 				}
-
 
 				_isExecutionLock = false;
 				return true;

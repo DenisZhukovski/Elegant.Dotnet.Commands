@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Windows.Input;
+﻿using System.Threading.Tasks;
+using Dotnet.Commands.UnitTests.Mocks;
 using Xunit;
 
 namespace Dotnet.Commands.UnitTests
@@ -57,6 +55,18 @@ namespace Dotnet.Commands.UnitTests
             Assert.Same(
                 commands.AsyncCommand(() => Task.CompletedTask),
                 commands.AsyncCommand(() => Task.CompletedTask)
+            );
+        }
+
+        [Fact]
+        public void CachedCommandInViewModel()
+        {
+            var viewModel = new CommandsViewModel(new Commands(0));
+            viewModel.IncreaseQuantityCommand.Execute();
+            viewModel.IncreaseQuantityCommand.Execute();
+            Assert.Equal(
+                2,
+                viewModel.Quantity
             );
         }
     }
