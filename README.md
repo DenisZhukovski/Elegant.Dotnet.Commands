@@ -2,6 +2,17 @@
 
 <img align="right" width="100px" src="https://avatars.githubusercontent.com/u/46710314?v=4" />
 
+<h3 align="center">
+   
+  [![NuGet](https://img.shields.io/nuget/v/Elegant.Dotnet.Commands.svg)](https://www.nuget.org/packages/Elegant.Dotnet.Commands/) 
+  [![Downloads](https://img.shields.io/nuget/dt/Elegant.Dotnet.Commands.svg)](https://www.nuget.org/Elegant.Dotnet.Commands/)
+  [![Stars](https://img.shields.io/github/stars/DenisZhukovski/Elegant.Dotnet.Commands?color=brightgreen)](https://github.com/DenisZhukovski/Elegant.Dotnet.Commands/stargazers) 
+  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md) 
+  [![Hits-of-Code](https://hitsofcode.com/github/DenisZhukovski/Elegant.Dotnet.Commands/)](https://hitsofcode.com/github/DenisZhukovski/Elegant.Dotnet.Commands/view)
+  [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=DenisZhukovski_Dotnet.Commands&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=DenisZhukovski_Dotnet.Commands)
+  [![EO principles respected here](https://www.elegantobjects.org/badge.svg)](https://www.elegantobjects.org)
+</h3>
+
 The repository implements [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) that usually used in .NET mobile projects supporting [MVVM design pattern](https://en.wikipedia.org/wiki/Model–view–viewmodel). The main goal is to provide an implementation for commands creation.
 
 ## How to get started
