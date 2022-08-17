@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Dotnet.Commands.UnitTests.Mocks;
 using Xunit;
 
@@ -67,6 +68,16 @@ namespace Dotnet.Commands.UnitTests
             Assert.Equal(
                 2,
                 viewModel.Quantity
+            );
+        }
+
+        [Fact]
+        public void ThrowArgumentNullExceptionIfArgumentIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                new Commands().Cached()
+                    .Command(() => { }, name: null)
+                    .Execute()
             );
         }
     }

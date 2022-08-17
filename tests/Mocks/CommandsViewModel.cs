@@ -4,7 +4,7 @@ namespace Dotnet.Commands.UnitTests.Mocks
 {
     public class CommandsViewModel
     {
-        private readonly CachedCommands _cachedCommands;
+        private readonly ICommands _cachedCommands;
 
         public CommandsViewModel(ICommands commands)
         {

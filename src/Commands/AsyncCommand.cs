@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dotnet.Commands
@@ -6,10 +7,11 @@ namespace Dotnet.Commands
     public class AsyncCommand<TypeArgument> : IAsyncCommand<TypeArgument>
     {
         private bool? _canExecutePreviously;
-        private readonly Func<TypeArgument, Task> _action;
-        private readonly Func<TypeArgument, bool>? _canExecuteDelegate;
+        private readonly Func<TypeArgument?, CancellationToken, Task> _action;
+        private readonly Func<TypeArgument?, bool>? _canExecuteDelegate;
+        private CancellationTokenSource? _cancellationTokenSource;
 
-        public AsyncCommand(Func<TypeArgument, Task> action, Func<TypeArgument, bool>? canExecute)
+        public AsyncCommand(Func<TypeArgument?, CancellationToken, Task> action, Func<TypeArgument?, bool>? canExecute)
         {
             _action = action;
             _canExecuteDelegate = canExecute;
@@ -22,7 +24,7 @@ namespace Dotnet.Commands
             RaiseCanExecuteChanged();
         }
 
-        public bool CanExecute(TypeArgument parameter)
+        public bool CanExecute(TypeArgument? parameter)
         {
             var canExecute = _canExecutePreviously ?? true;
             if (_canExecuteDelegate != null)
@@ -48,14 +50,28 @@ namespace Dotnet.Commands
             Execute((TypeArgument)parameter);
         }
 
-        public void Execute(TypeArgument parameter)
+        public void Execute(TypeArgument? parameter)
         {
             _ = ExecuteAsync(parameter);
         }
 
-        public Task ExecuteAsync(object parameter)
+        public Task ExecuteAsync(object? parameter)
         {
-            return ExecuteAsync((TypeArgument)parameter);
+            return ExecuteAsync((TypeArgument?)parameter);
+        }
+
+        public Task ExecuteAsync(TypeArgument? parameter)
+        {
+            if (CanExecute(parameter))
+            {
+                // Cancel the previous operation, if one is pending
+                _cancellationTokenSource?.Cancel();
+
+                var cancellationTokenSource = _cancellationTokenSource = new CancellationTokenSource();
+                return _action(parameter, cancellationTokenSource.Token);
+            }
+
+            return Task.CompletedTask;
         }
 
         protected void RaiseCanExecuteChanged()
@@ -63,14 +79,9 @@ namespace Dotnet.Commands
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public Task ExecuteAsync(TypeArgument parameter)
+        public void Cancel()
         {
-            if (CanExecute(parameter))
-            {
-                return _action(parameter);
-            }
-
-            return Task.CompletedTask;
+            _cancellationTokenSource?.Cancel();
         }
     }
 }

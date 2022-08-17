@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Dotnet.Commands.UnitTests.Mocks;
 using Xunit;
@@ -247,7 +248,7 @@ namespace Dotnet.Commands.UnitTests
                         .AsyncCommand(async () =>
                         {
                             await Task.Delay(500);
-                            executionsCount++;
+                            Interlocked.Increment(ref executionsCount);
                         }, forceExecution: true)
                         .ExecuteAsync()
                 ); 
@@ -273,6 +274,62 @@ namespace Dotnet.Commands.UnitTests
             Assert.NotEqual(
                 commands.AsyncCommand(() => Task.CompletedTask),
                 commands.AsyncCommand(() => Task.CompletedTask)
+            );
+        }
+
+        [Fact]
+        public Task AsyncCommand_CancelThrowsException()
+        {
+            var asyncCommand = new Commands()
+                .AsyncCommand(async (ct) =>
+                {
+                    await Task.Delay(3000);
+                    ct.ThrowIfCancellationRequested();
+                    throw new ArgumentException(string.Empty);
+                });
+            Task.Run(async () =>
+            {
+                await Task.Delay(1000);
+                asyncCommand.Cancel();
+            });
+            return Assert.ThrowsAsync<OperationCanceledException>(() =>
+                asyncCommand.ExecuteAsync()
+            );
+        }
+
+        [Fact]
+        public Task AsyncCommandWithParam_CancelThrowsException()
+        {
+            var asyncCommand = new Commands()
+                .AsyncCommand<int>(async (param, ct) =>
+                {
+                    await Task.Delay(3000);
+                    ct.ThrowIfCancellationRequested();
+                    throw new ArgumentException(string.Empty);
+                });
+            Task.Run(async () =>
+            {
+                await Task.Delay(1000);
+                asyncCommand.Cancel();
+            });
+            return Assert.ThrowsAsync<OperationCanceledException>(() =>
+                asyncCommand.ExecuteAsync(0)
+            );
+        }
+
+        [Fact]
+        public Task AsyncCommand_NotCancelCommand_IfCancellationWasRequestedBeforeExecuting()
+        {
+            var asyncCommand = new Commands()
+                .AsyncCommand(async (ct) =>
+                {
+                    await Task.Delay(500);
+                    ct.ThrowIfCancellationRequested();
+                    throw new ArgumentException(string.Empty);
+                });
+            asyncCommand.Cancel();
+            return Assert.ThrowsAsync<ArgumentException>(() =>
+                asyncCommand.ExecuteAsync()
             );
         }
     }

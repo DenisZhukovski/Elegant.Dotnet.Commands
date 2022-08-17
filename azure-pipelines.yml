@@ -34,6 +34,9 @@ steps:
     scannerMode: 'MSBuild'
     projectKey: 'DenisZhukovski_Dotnet.Commands'
     projectName: 'Dotnet.Commands'
+    extraProperties: |
+        sonar.cs.opencover.reportsPaths=$(Build.SourcesDirectory)\tests\coverage.opencover.xml
+        sonar.cs.vstest.reportsPaths=$(Agent.TempDirectory)\*.trx
 
 - task: VSBuild@1
   inputs:
