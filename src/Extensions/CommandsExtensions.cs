@@ -59,8 +59,8 @@ namespace Dotnet.Commands
 
         public static IAsyncCommand<TParam> AsyncCommand<TParam>(
             this ICommands commands,
-            Func<TParam, Task> execute,
-            Func<TParam, bool>? canExecute = null,
+            Func<TParam?, Task> execute,
+            Func<TParam?, bool>? canExecute = null,
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {

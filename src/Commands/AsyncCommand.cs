@@ -7,16 +7,16 @@ namespace Dotnet.Commands
     public class AsyncCommand<TypeArgument> : IAsyncCommand<TypeArgument>
     {
         private bool? _canExecutePreviously;
-        private readonly Func<TypeArgument, CancellationToken, Task> _action;
-        private readonly Func<TypeArgument, bool>? _canExecuteDelegate;
+        private readonly Func<TypeArgument?, CancellationToken, Task> _action;
+        private readonly Func<TypeArgument?, bool>? _canExecuteDelegate;
         private CancellationTokenSource? _cancellationTokenSource;
 
-        public AsyncCommand(Func<TypeArgument, Task> action, Func<TypeArgument, bool>? canExecute)
+        public AsyncCommand(Func<TypeArgument?, Task> action, Func<TypeArgument?, bool>? canExecute)
             : this((argument, _) => action(argument), canExecute)
         {
         }
 
-        public AsyncCommand(Func<TypeArgument, CancellationToken, Task> action, Func<TypeArgument, bool>? canExecute)
+        public AsyncCommand(Func<TypeArgument?, CancellationToken, Task> action, Func<TypeArgument?, bool>? canExecute)
         {
             _action = action;
             _canExecuteDelegate = canExecute;
@@ -29,7 +29,7 @@ namespace Dotnet.Commands
             RaiseCanExecuteChanged();
         }
 
-        public bool CanExecute(TypeArgument parameter)
+        public bool CanExecute(TypeArgument? parameter)
         {
             var canExecute = _canExecutePreviously ?? true;
             if (_canExecuteDelegate != null)
@@ -55,14 +55,14 @@ namespace Dotnet.Commands
             Execute((TypeArgument)parameter);
         }
 
-        public void Execute(TypeArgument parameter)
+        public void Execute(TypeArgument? parameter)
         {
             _ = ExecuteAsync(parameter);
         }
 
-        public Task ExecuteAsync(object parameter)
+        public Task ExecuteAsync(object? parameter)
         {
-            return ExecuteAsync((TypeArgument)parameter);
+            return ExecuteAsync((TypeArgument?)parameter);
         }
 
         protected void RaiseCanExecuteChanged()
@@ -70,7 +70,7 @@ namespace Dotnet.Commands
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public Task ExecuteAsync(TypeArgument parameter)
+        public Task ExecuteAsync(TypeArgument? parameter)
         {
             if (CanExecute(parameter))
             {

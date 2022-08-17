@@ -51,12 +51,12 @@ namespace Dotnet.Commands
 		}
 
 		public IAsyncCommand<TParam> AsyncCommand<TParam>(
-			Func<TParam, CancellationToken, Task> execute,
-			Func<TParam, bool>? canExecute = null,
+			Func<TParam?, CancellationToken, Task> execute,
+			Func<TParam?, bool>? canExecute = null,
 			bool forceExecution = false,
 			[CallerMemberName] string? name = null)
 		{
-			Func<TParam, CancellationToken, Task > func = async (param, ct) =>
+			Func<TParam?, CancellationToken, Task > func = async (param, ct) =>
 			{
 				if (forceExecution)
                 {

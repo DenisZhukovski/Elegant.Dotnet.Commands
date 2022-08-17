@@ -14,6 +14,6 @@ namespace Dotnet.Commands
 
 	public interface IAsyncCommand<in TParam> : IAsyncCommand
 	{
-		Task ExecuteAsync(TParam parameter);
+		Task ExecuteAsync(TParam? parameter);
     }
 }

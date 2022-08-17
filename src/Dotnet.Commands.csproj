@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<Nullable>enable</Nullable>
-        <Authors>Denis Zhukovski</Authors>
+        <Authors>Denis Zhukovski, Yauheni Puntus</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <Version>1.0.0.4</Version>
         <Title>Dotnet Commands</Title>
@@ -13,5 +13,6 @@
         <RepositoryUrl>https://github.com/DenisZhukovski/Dotnet.Commands</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageVersion>1.0.0.4</PackageVersion>
+        <LangVersion>9.0</LangVersion>
 	</PropertyGroup>
 </Project>
