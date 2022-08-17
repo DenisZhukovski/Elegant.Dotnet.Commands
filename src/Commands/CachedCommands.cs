@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Dotnet.Commands
 {
-    public class CachedCommands
+    public class CachedCommands : ICommands
     {
         private readonly ICommands _commands;
         private readonly Dictionary<string, ICommand> _cache = new Dictionary<string, ICommand>();
@@ -27,7 +28,7 @@ namespace Dotnet.Commands
             _ = name ?? throw new ArgumentNullException(nameof(name));
             return _cache.GetOrAdd(
                 name,
-                () => _commands.Command(execute, canExecute, forceExecution)
+                () => _commands.Command(execute, canExecute, forceExecution, name)
             );
         }
 
@@ -40,12 +41,12 @@ namespace Dotnet.Commands
             _ = name ?? throw new ArgumentNullException(nameof(name));
             return _cache.GetOrAdd(
                 name,
-                () => _commands.Command(execute, canExecute, forceExecution)
+                () => _commands.Command(execute, canExecute, forceExecution, name)
             );
         }
 
         public IAsyncCommand AsyncCommand(
-            Func<Task> execute,
+            Func<CancellationToken, Task> execute,
             Func<bool>? canExecute = null,
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
@@ -53,20 +54,20 @@ namespace Dotnet.Commands
             _ = name ?? throw new ArgumentNullException(nameof(name));
             return (IAsyncCommand)_cache.GetOrAdd(
                 name,
-                () => _commands.AsyncCommand(execute, canExecute, forceExecution)
+                () => _commands.AsyncCommand(execute, canExecute, forceExecution, name)
             );
         }
 
-        public IAsyncCommand AsyncCommand<TParam>(
-            Func<TParam, Task> execute,
+        public IAsyncCommand<TParam> AsyncCommand<TParam>(
+            Func<TParam, CancellationToken, Task> execute,
             Func<TParam, bool>? canExecute = null,
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
             _ = name ?? throw new ArgumentNullException(nameof(name));
-            return (IAsyncCommand)_cache.GetOrAdd(
+            return (IAsyncCommand<TParam>)_cache.GetOrAdd(
                 name,
-                () => _commands.AsyncCommand(execute, canExecute, forceExecution)
+                () => _commands.AsyncCommand(execute, canExecute, forceExecution, name)
             );
         }
 

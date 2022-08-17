@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -37,27 +38,29 @@ namespace Dotnet.Commands
 		}
 
 		public IAsyncCommand AsyncCommand(
-			Func<Task> execute,
+			Func<CancellationToken, Task> execute,
 			Func<bool>? canExecute = null,
-			bool forceExecution = false)
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null)
 		{
 			return AsyncCommand<object>(
-				o => execute(),
+				(o, ct) => execute(ct),
 				o => CanExecute(canExecute),
 				forceExecution
 			);
 		}
 
 		public IAsyncCommand<TParam> AsyncCommand<TParam>(
-			Func<TParam, Task> execute,
+			Func<TParam, CancellationToken, Task> execute,
 			Func<TParam, bool>? canExecute = null,
-			bool forceExecution = false)
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null)
 		{
-			Func<TParam, Task> func = async param =>
+			Func<TParam, CancellationToken, Task > func = async (param, ct) =>
 			{
 				if (forceExecution)
                 {
-					await ExceptionHandledExecution(execute, param);
+					await ExceptionHandledExecution(execute, param, ct);
 					return;
 				}
 				if (IsLocked)
@@ -74,7 +77,7 @@ namespace Dotnet.Commands
 					}
 
 					currentLockIndex = Interlocked.Increment(ref _lockIndex);
-					await ExceptionHandledExecution(execute, param);
+					await ExceptionHandledExecution(execute, param, ct);
 				}
 				finally
 				{
@@ -85,7 +88,7 @@ namespace Dotnet.Commands
 				}
 			};
 
-			return new AsyncCommand<TParam>(o => func(o), par => CanExecute(par, canExecute));
+			return new AsyncCommand<TParam>((o, ct) => func(o, ct), par => CanExecute(par, canExecute));
 		}
 
 		public void ForceRelease()
@@ -97,7 +100,8 @@ namespace Dotnet.Commands
 		public ICommand Command(
 			Action execute,
 			Func<bool>? canExecute = null,
-			bool forceExecution = false)
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null)
 		{
 			return Command<object>(
 				o => execute(),
@@ -109,7 +113,8 @@ namespace Dotnet.Commands
 		public ICommand Command<TParam>(
 			Action<TParam> execute,
 			Func<TParam, bool>? canExecute = null,
-			bool forceExecution = false)
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null)
 		{
 			Action<TParam> act = p =>
 			{
@@ -147,11 +152,11 @@ namespace Dotnet.Commands
 			return false;
 		}
 
-		private async Task ExceptionHandledExecution<TParam>(Func<TParam, Task> execute, TParam param)
+		private async Task ExceptionHandledExecution<TParam>(Func<TParam, CancellationToken, Task> execute, TParam param, CancellationToken cancellationToken)
 		{
 			try
 			{
-				await execute(param);
+				await execute(param, cancellationToken);
 			}
 			catch (Exception e)
 			{

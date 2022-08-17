@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dotnet.Commands
@@ -6,10 +7,16 @@ namespace Dotnet.Commands
     public class AsyncCommand<TypeArgument> : IAsyncCommand<TypeArgument>
     {
         private bool? _canExecutePreviously;
-        private readonly Func<TypeArgument, Task> _action;
+        private readonly Func<TypeArgument, CancellationToken, Task> _action;
         private readonly Func<TypeArgument, bool>? _canExecuteDelegate;
+        private CancellationTokenSource? _cancellationTokenSource;
 
         public AsyncCommand(Func<TypeArgument, Task> action, Func<TypeArgument, bool>? canExecute)
+            : this((argument, _) => action(argument), canExecute)
+        {
+        }
+
+        public AsyncCommand(Func<TypeArgument, CancellationToken, Task> action, Func<TypeArgument, bool>? canExecute)
         {
             _action = action;
             _canExecuteDelegate = canExecute;
@@ -67,10 +74,19 @@ namespace Dotnet.Commands
         {
             if (CanExecute(parameter))
             {
-                return _action(parameter);
+                // Cancel the previous operation, if one is pending
+                _cancellationTokenSource?.Cancel();
+
+                var cancellationTokenSource = _cancellationTokenSource = new CancellationTokenSource();
+                return _action(parameter, cancellationTokenSource.Token);
             }
 
             return Task.CompletedTask;
+        }
+
+        public void Cancel()
+        {
+            _cancellationTokenSource?.Cancel();
         }
     }
 }

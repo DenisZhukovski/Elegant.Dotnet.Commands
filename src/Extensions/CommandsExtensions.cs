@@ -1,11 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Dotnet.Commands
 {
     public static class CommandsExtensions
     {
-        public static CachedCommands Cached(this ICommands commands)
+        public static ICommands Cached(this ICommands commands)
         {
             return new CachedCommands(commands);
         }
@@ -38,6 +40,36 @@ namespace Dotnet.Commands
             }
             command.Execute(parameter);
             return Task.CompletedTask;
+        }
+
+        public static IAsyncCommand AsyncCommand(
+            this ICommands commands,
+            Func<Task> execute,
+            Func<bool>? canExecute = null,
+            bool forceExecution = false,
+            [CallerMemberName] string? name = null)
+        {
+            return commands.AsyncCommand(
+                (ct) => execute(),
+                canExecute,
+                forceExecution,
+                name
+            );
+        }
+
+        public static IAsyncCommand<TParam> AsyncCommand<TParam>(
+            this ICommands commands,
+            Func<TParam, Task> execute,
+            Func<TParam, bool>? canExecute = null,
+            bool forceExecution = false,
+            [CallerMemberName] string? name = null)
+        {
+            return commands.AsyncCommand(
+                (param, ct) => execute(param),
+                canExecute,
+                forceExecution,
+                name
+            );
         }
     }
 }
