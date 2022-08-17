@@ -11,11 +11,6 @@ namespace Dotnet.Commands
         private readonly Func<TypeArgument?, bool>? _canExecuteDelegate;
         private CancellationTokenSource? _cancellationTokenSource;
 
-        public AsyncCommand(Func<TypeArgument?, Task> action, Func<TypeArgument?, bool>? canExecute)
-            : this((argument, _) => action(argument), canExecute)
-        {
-        }
-
         public AsyncCommand(Func<TypeArgument?, CancellationToken, Task> action, Func<TypeArgument?, bool>? canExecute)
         {
             _action = action;
@@ -65,11 +60,6 @@ namespace Dotnet.Commands
             return ExecuteAsync((TypeArgument?)parameter);
         }
 
-        protected void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-        }
-
         public Task ExecuteAsync(TypeArgument? parameter)
         {
             if (CanExecute(parameter))
@@ -82,6 +72,11 @@ namespace Dotnet.Commands
             }
 
             return Task.CompletedTask;
+        }
+
+        protected void RaiseCanExecuteChanged()
+        {
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void Cancel()
