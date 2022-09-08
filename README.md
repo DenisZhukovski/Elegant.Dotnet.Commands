@@ -45,13 +45,38 @@ await asyncCommnad.ExecuteAsync();
 
 ```
 
+## Cancellation Token
+
+The async command execution can be time comsuming and sometimes it can be useful to have a possibility to cancel the command execution. To make it possible [CancellationToken](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken?view=net-6.0) entity is been passed into Async command execution delegate. To cancel the token async command Cancel method should be called.
+
+```cs
+var commands = new Commands().Validated();
+
+var asyncCommand = commands.AsyncCommand(
+    async (cancellationToken) => 
+    { 
+      /* some async logic here */ 
+      if (cancellationToken.IsCancellationRequested)
+      {
+         /* continue async logic here */ 
+      }
+    }, 
+    CanExecute
+);
+
+var commandTask = asyncCommnad.ExecuteAsync();
+await Task.Delay(1000);
+asyncCommnad.Cancel();
+
+```
+
 ## Cached commands
 
 Somethimes it can be handy to cache the command once its been created by [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory. Especially useful case is view models.
 
 ```cs
 
-private CachedCommands _commands;
+private ICommands _commands;
 
 public ViewModel(ICommmands commands)
 {
@@ -146,3 +171,14 @@ public static int DefaultCommandExecutionInterval = 300;
 ```
 
 As a result it can affect unit tests execution process when commands can execute in concurrency. Its possible to set it to 0 once commands factory is created.
+
+
+## Build status
+
+<div align="center">
+  
+   [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DenisZhukovski_Dotnet.Commands&metric=alert_status)](https://sonarcloud.io/dashboard?id=DenisZhukovski_Dotnet.Commands) 
+   [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DenisZhukovski_Dotnet.Commands&metric=coverage)](https://sonarcloud.io/dashboard?id=DenisZhukovski_Dotnet.Commands)
+   [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=DenisZhukovski_Dotnet.Commands&metric=duplicated_lines_density)](https://sonarcloud.io/dashboard?id=DenisZhukovski_Dotnet.Commands)
+   [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=DenisZhukovski_Dotnet.Commands&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=DenisZhukovski_Dotnet.Commands) 
+</div>
