@@ -76,7 +76,7 @@ namespace Dotnet.Commands
 
         protected void RaiseCanExecuteChanged()
         {
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+            CanExecuteChanged?.Invoke(this, new CanExecureArgs(_canExecutePreviously ?? false));
         }
 
         public void Cancel()
