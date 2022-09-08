@@ -29,15 +29,14 @@ steps:
     restoreSolution: '$(solution)'
 - task: SonarCloudPrepare@1
   inputs:
-    SonarCloud: 'Sonar Cloud'
+    SonarCloud: 'SonarCloud'
     organization: 'deniszhukovski'
     scannerMode: 'MSBuild'
     projectKey: 'DenisZhukovski_Dotnet.Commands'
     projectName: 'Dotnet.Commands'
     extraProperties: |
-        sonar.cs.opencover.reportsPaths=$(Build.SourcesDirectory)\tests\coverage.opencover.xml
+        sonar.cs.opencover.reportsPaths=$(Build.SourcesDirectory)\tests\Dotnet.Commands.UnitTests\coverage.opencover.xml
         sonar.cs.vstest.reportsPaths=$(Agent.TempDirectory)\*.trx
-
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
