@@ -234,6 +234,25 @@ namespace Dotnet.Commands.UnitTests
 
             Assert.True(commandExecuted);
         }
+        
+        [Fact]
+        public void CanExecuteChangedEvent()
+        {
+            var commandExecuted = true;
+            var command = new Commands().Command(
+                () => { },
+                () => false
+            );
+            command.CanExecuteChanged += (sender, args) =>
+            {
+                var canExecuteArgs = (CanExecureArgs)args;
+                commandExecuted = canExecuteArgs.CanExecute;
+            };
+
+            command.CanExecute(null);
+
+            Assert.False(commandExecuted);
+        }
 
         [Fact]
         public async Task ForceExecute()
