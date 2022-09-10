@@ -22,6 +22,12 @@ namespace Dotnet.Commands
 			bool forceExecution = false,
 			[CallerMemberName] string? name = null);
 
+        public IAsyncCommand<TParam> AsyncCommand<TParam>(
+	        Func<TParam?, CancellationToken, Task> execute,
+	        Func<TParam?, Task<bool>>? canExecute = null,
+	        bool forceExecution = false,
+	        [CallerMemberName] string? name = null);
+
 		ICommand Command(
 			Action execute,
 			Func<bool>? canExecute = null,

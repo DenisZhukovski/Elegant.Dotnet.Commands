@@ -53,7 +53,7 @@ namespace Dotnet.Commands
 
         protected void RaiseCanExecuteChanged()
         {
-            CanExecuteChanged?.Invoke(this, new CanExecureArgs(_canExecutePreviously ?? false));
+            CanExecuteChanged?.Invoke(this, new CanExecuteArgs(_canExecutePreviously ?? false));
         }
     }
 }

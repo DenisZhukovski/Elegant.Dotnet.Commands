@@ -2,9 +2,9 @@ using System;
 
 namespace Dotnet.Commands
 {
-    public class CanExecureArgs : EventArgs
+    public class CanExecuteArgs : EventArgs
     {
-        public CanExecureArgs(bool canExecute)
+        public CanExecuteArgs(bool canExecute)
         {
             CanExecute = canExecute;
         }

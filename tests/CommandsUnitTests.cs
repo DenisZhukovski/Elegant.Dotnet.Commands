@@ -126,6 +126,42 @@ namespace Dotnet.Commands.UnitTests
                 .ExecuteAsync(null);
             Assert.Equal(1, executionsCount);
         }
+        
+        [Fact]
+        public async Task CanExecuteAsync()
+        {
+            int executionsCount = 0;
+            await new Commands()
+                .AsyncCommand<int>(async (number) =>
+                {
+                    await Task.Delay(500);
+                    executionsCount++;
+                }, async (number) =>
+                {
+                    await Task.Delay(500);
+                    return true;
+                })
+                .ExecuteAsync(12);
+            Assert.Equal(1, executionsCount);
+        }
+        
+        [Fact]
+        public async Task CanExecuteAsyncFalse()
+        {
+            int executionsCount = 0;
+            await new Commands()
+                .AsyncCommand<int>(async (number) =>
+                {
+                    await Task.Delay(500);
+                    executionsCount++;
+                }, async (number) =>
+                {
+                    await Task.Delay(500);
+                    return false;
+                })
+                .ExecuteAsync(12);
+            Assert.Equal(0, executionsCount);
+        }
 
         [Fact]
         public void CommandThrowsException()
@@ -245,7 +281,7 @@ namespace Dotnet.Commands.UnitTests
             );
             command.CanExecuteChanged += (sender, args) =>
             {
-                var canExecuteArgs = (CanExecureArgs)args;
+                var canExecuteArgs = (CanExecuteArgs)args;
                 commandExecuted = canExecuteArgs.CanExecute;
             };
 

@@ -71,5 +71,20 @@ namespace Dotnet.Commands
                 name
             );
         }
+        
+        public static IAsyncCommand<TParam> AsyncCommand<TParam>(
+            this ICommands commands,
+            Func<TParam?, Task> execute,
+            Func<TParam?, Task<bool>> canExecute,
+            bool forceExecution = false,
+            [CallerMemberName] string? name = null)
+        {
+            return commands.AsyncCommand(
+                (param, ct) => execute(param),
+                canExecute,
+                forceExecution,
+                name
+            );
+        }
     }
 }
