@@ -10,7 +10,7 @@ namespace Dotnet.Commands
     public class CachedCommands : ICommands
     {
         private readonly ICommands _commands;
-        private readonly Dictionary<string, ICommand> _cache = new Dictionary<string, ICommand>();
+        private readonly Dictionary<string, ICommand> _cache = new();
 
         public CachedCommands(ICommands commands)
         {
@@ -18,6 +18,15 @@ namespace Dotnet.Commands
         }
 
         public bool IsLocked => _commands.IsLocked;
+
+        public IAsyncCommand<TParam> AsyncCommand<TParam>(
+            Func<TParam?, CancellationToken, Task> execute, 
+            Func<TParam?, Task<bool>>? canExecute = null, 
+            bool forceExecution = false,
+            string? name = null)
+        {
+            return _commands.AsyncCommand(execute, canExecute, forceExecution, name);
+        }
 
         public ICommand Command(
             Action execute,

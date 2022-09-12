@@ -44,15 +44,28 @@ namespace Dotnet.Commands
 			[CallerMemberName] string? name = null)
 		{
 			return AsyncCommand<object>(
-				(o, ct) => execute(ct),
-				o => CanExecute(canExecute),
+				(_, ct) => execute(ct),
+				_ => CanExecute(canExecute),
 				forceExecution
 			);
 		}
 
 		public IAsyncCommand<TParam> AsyncCommand<TParam>(
 			Func<TParam?, CancellationToken, Task> execute,
-			Func<TParam?, bool>? canExecute = null,
+			Func<TParam?, bool>? canExecute,
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null)
+		{
+			return AsyncCommand(
+				execute,
+				(p) => Task.FromResult(CanExecute(p, canExecute)),
+				forceExecution: forceExecution
+			);
+		}
+		
+		public IAsyncCommand<TParam> AsyncCommand<TParam>(
+			Func<TParam?, CancellationToken, Task> execute,
+			Func<TParam?, Task<bool>>? canExecute = null,
 			bool forceExecution = false,
 			[CallerMemberName] string? name = null)
 		{
@@ -88,7 +101,10 @@ namespace Dotnet.Commands
 				}
 			};
 
-			return new AsyncCommand<TParam>((o, ct) => func(o, ct), par => CanExecute(par, canExecute));
+			return new AsyncCommand<TParam>(
+				(o, ct) => func(o, ct),
+				new CanExecute<TParam>(canExecute)
+			);
 		}
 
 		public void ForceRelease()
@@ -104,8 +120,8 @@ namespace Dotnet.Commands
 			[CallerMemberName] string? name = null)
 		{
 			return Command<object>(
-				o => execute(),
-				o => CanExecute(canExecute),
+				_ => execute(),
+				_ => CanExecute(canExecute),
 				forceExecution
 			);
 		}
@@ -152,7 +168,10 @@ namespace Dotnet.Commands
 			return false;
 		}
 
-		private async Task ExceptionHandledExecution<TParam>(Func<TParam, CancellationToken, Task> execute, TParam param, CancellationToken cancellationToken)
+		private async Task ExceptionHandledExecution<TParam>(
+			Func<TParam, CancellationToken, Task> execute, 
+			TParam param, 
+			CancellationToken cancellationToken)
 		{
 			try
 			{
