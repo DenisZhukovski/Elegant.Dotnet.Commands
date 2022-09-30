@@ -54,9 +54,9 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void AsyncCommandCanExecuteTrue()
         {
-            Assert.False(
+            Assert.True(
                 new Commands()
-                    .AsyncCommand(() => Task.CompletedTask, () => false)
+                    .AsyncCommand(() => Task.CompletedTask, () => true)
                     .CanExecute(null)
             );
         }
@@ -158,6 +158,24 @@ namespace Dotnet.Commands.UnitTests
                 {
                     await Task.Delay(500);
                     return false;
+                })
+                .ExecuteAsync(12);
+            Assert.Equal(0, executionsCount);
+        }
+
+        [Fact]
+        public async Task CanExecuteAsyncTrue()
+        {
+            int executionsCount = 0;
+            await new Commands()
+                .AsyncCommand<int>(async (number) =>
+                {
+                    await Task.Delay(500);
+                    executionsCount++;
+                }, async (number) =>
+                {
+                    await Task.Delay(500);
+                    return true;
                 })
                 .ExecuteAsync(12);
             Assert.Equal(0, executionsCount);
