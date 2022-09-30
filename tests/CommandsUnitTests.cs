@@ -178,7 +178,7 @@ namespace Dotnet.Commands.UnitTests
                     return true;
                 })
                 .ExecuteAsync(12);
-            Assert.Equal(0, executionsCount);
+            Assert.Equal(1, executionsCount);
         }
 
         [Fact]
