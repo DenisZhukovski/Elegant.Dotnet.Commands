@@ -3,29 +3,24 @@ using System.Threading.Tasks;
 
 namespace Dotnet.Commands
 {
-    public class CanExecute<TArgument> : ICanExecuteAsync<TArgument>
+    public class CommandCanExecute<TArgument> : ICanExecute<TArgument>
     {
         private bool? _canExecutePreviously;
-        private readonly Func<TArgument?, Task<bool>>? _canExecute;
+        private readonly Func<TArgument?, bool>? _canExecute;
 
-        public CanExecute(Func<TArgument?, bool>? canExecute)
-            : this(param => Task.FromResult(canExecute?.Invoke(param) ?? true))
-        {
-        }
-        
-        public CanExecute(Func<TArgument?, Task<bool>>? canExecute)
+        public CommandCanExecute(Func<TArgument?, bool>? canExecute)
         {
             _canExecute = canExecute;
         }
 
         public event EventHandler? CanExecuteChanged;
         
-        public async Task<bool> CanExecuteAsync(TArgument? param)
+        public bool CanExecute(TArgument? param)
         {
             var canExecute = _canExecutePreviously ?? true;
             if (_canExecute != null)
             {
-                canExecute = await _canExecute(param);
+                canExecute = _canExecute(param);
                 if (canExecute != _canExecutePreviously)
                 {
                     _canExecutePreviously = canExecute;
@@ -35,7 +30,7 @@ namespace Dotnet.Commands
 
             return canExecute;
         }
-        
+
         public void RaiseCanExecuteChanged()
         {
             CanExecuteChanged?.Invoke(this, new CanExecuteArgs(_canExecutePreviously ?? false));

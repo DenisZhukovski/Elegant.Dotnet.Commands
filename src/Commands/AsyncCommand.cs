@@ -7,34 +7,29 @@ namespace Dotnet.Commands
     public class AsyncCommand<TArgument> : IAsyncCommand<TArgument>
     {
         private readonly Func<TArgument?, CancellationToken, Task> _action;
-        private readonly ICanExecuteAsync<TArgument> _canExecute;
+        private readonly ICanExecute<TArgument> _canExecute;
         private CancellationTokenSource? _cancellationTokenSource;
-        private bool? _canExecuteValue;
 
         public AsyncCommand(
             Func<TArgument?, CancellationToken, Task> action,
             Func<TArgument?, Task<bool>>? canExecute = null)
-            : this(action, new CanExecute<TArgument>(canExecute))
+            : this(action, new CommandCanExecuteAsync<TArgument>(canExecute))
         {
         }
         
         public AsyncCommand(
             Func<TArgument?, CancellationToken, Task> action,
             Func<TArgument?, bool>? canExecute = null)
-        : this(action, new CanExecute<TArgument>(canExecute))
+        : this(action, new CommandCanExecute<TArgument>(canExecute))
         {
         }
         
         public AsyncCommand(
             Func<TArgument?, CancellationToken, Task> action, 
-            ICanExecuteAsync<TArgument> canExecute)
+            ICanExecute<TArgument> canExecute)
         {
             _action = action;
             _canExecute = canExecute;
-            _canExecute.CanExecuteChanged += delegate(object sender, EventArgs args)
-            {
-                _canExecuteValue = ((CanExecuteArgs)args).CanExecute;
-            };
         }
 
         public event EventHandler? CanExecuteChanged
@@ -52,35 +47,10 @@ namespace Dotnet.Commands
         {
             _cancellationTokenSource?.Cancel();
         }
-        
-        public bool CanExecute(TArgument? parameter)
-        {
-            if (_canExecuteValue.HasValue)
-            {
-                var result = _canExecuteValue.Value;
-                _canExecuteValue = null;
-                return result;
-            }
-
-            _ = Task.Run(async () =>
-            {
-                await _canExecute.CanExecuteAsync(parameter);
-                /*
-                 * By default when can execute has been changed the internal subscription should
-                 * update _canExecuteValue field but if it hasn't happened the code has to raise the event
-                 * to complete the flow properly.
-                 */ 
-                if (!_canExecuteValue.HasValue)
-                {
-                    RaiseCanExecuteChanged();
-                }
-            });
-            return false;
-        }
 
         public bool CanExecute(object parameter)
         {
-            return CanExecute((TArgument)parameter);
+            return _canExecute.CanExecute((TArgument)parameter);
         }
 
         public void Execute(object parameter)
@@ -100,7 +70,16 @@ namespace Dotnet.Commands
 
         public async Task ExecuteAsync(TArgument? parameter)
         {
-            if (await _canExecute.CanExecuteAsync(parameter))
+            bool canExecute;
+            if (_canExecute is ICanExecuteAsync<TArgument> canExecuteAsync)
+            {
+                canExecute = await canExecuteAsync.CanExecute(parameter);
+            }
+            else
+            {
+                canExecute = _canExecute.CanExecute(parameter);
+            }
+            if (canExecute)
             {
                 // Cancel the previous operation, if one is pending
                 _cancellationTokenSource?.Cancel();
