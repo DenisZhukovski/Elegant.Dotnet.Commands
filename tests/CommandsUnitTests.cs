@@ -34,9 +34,19 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void CommandCanExecuteTrue()
         {
-            Assert.False(
+            Assert.True(
                 new Commands()
-                    .Command(() => { }, () => false)
+                    .Command(() => { }, () => true)
+                    .CanExecute(null)
+            );
+        }
+        
+        [Fact]
+        public void CommandCanExecuteTrue_WhenNull()
+        {
+            Assert.True(
+                new Commands()
+                    .Command(() => { })
                     .CanExecute(null)
             );
         }
@@ -54,9 +64,19 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void AsyncCommandCanExecuteTrue()
         {
-            Assert.False(
+            Assert.True(
                 new Commands()
-                    .AsyncCommand(() => Task.CompletedTask, () => false)
+                    .AsyncCommand(() => Task.CompletedTask, () => true)
+                    .CanExecute(null)
+            );
+        }
+        
+        [Fact]
+        public void AsyncCommandCanExecuteTrue_WhenNull()
+        {
+            Assert.True(
+                new Commands()
+                    .AsyncCommand(() => Task.CompletedTask)
                     .CanExecute(null)
             );
         }
