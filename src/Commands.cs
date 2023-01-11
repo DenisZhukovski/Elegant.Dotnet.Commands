@@ -55,14 +55,27 @@ namespace Dotnet.Commands
 		{
 			return AsyncCommand(
 				execute,
-				(p) => Task.FromResult(CanExecute(p, canExecute)),
+				new CommandCanExecute<TParam>(canExecute),
 				forceExecution: forceExecution
 			);
 		}
-		
+
+		public IAsyncCommand<TParam> AsyncCommand<TParam>(
+			Func<TParam?, CancellationToken, Task> execute, 
+			Func<TParam?, Task<bool>>? canExecute = null, 
+			bool forceExecution = false,
+			string? name = null)
+		{
+			return AsyncCommand(
+				execute,
+				new CommandCanExecuteAsync<TParam>(canExecute),
+				forceExecution: forceExecution
+			);
+		}
+
 		public IAsyncCommand<TParam> AsyncCommand<TParam>(
 			Func<TParam?, CancellationToken, Task> execute,
-			Func<TParam?, Task<bool>>? canExecute = null,
+			ICanExecute<TParam> canExecute,
 			bool forceExecution = false,
 			[CallerMemberName] string? name = null)
 		{
@@ -100,7 +113,7 @@ namespace Dotnet.Commands
 
 			return new AsyncCommand<TParam>(
 				(o, ct) => func(o, ct),
-				new CanExecute<TParam>(canExecute)
+				canExecute
 			);
 		}
 
