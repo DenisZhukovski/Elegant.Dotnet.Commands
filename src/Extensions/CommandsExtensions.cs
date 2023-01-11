@@ -7,6 +7,20 @@ namespace Dotnet.Commands
 {
     public static class CommandsExtensions
     {
+        public static ICommands Safe(this ICommands commands, Action<Exception> onError)
+        {
+            return new SafeCommands(commands, (exception) =>
+            {
+                onError(exception);
+                return true;
+            });
+        }
+        
+        public static ICommands Safe(this ICommands commands, Func<Exception, bool> onError)
+        {
+            return new SafeCommands(commands, onError);
+        }
+        
         public static ICommands Cached(this ICommands commands)
         {
             return new CachedCommands(commands);
