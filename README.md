@@ -221,7 +221,14 @@ public static int DefaultCommandExecutionInterval = 300;
 ```
 
 As a result it can affect unit tests execution process when commands can execute in concurrency. Its possible to set it to 0 once commands factory is created.
+   
+```cs
+void SomeUnitTest()
+{
+   var commands = new Commands(0);
+}
 
+```
 
 ## Build status
 
