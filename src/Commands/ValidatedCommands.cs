@@ -43,6 +43,7 @@ namespace Dotnet.Commands
             bool forceExecution = false,
             string? name = null)
         {
+            _ = execute ?? throw new ArgumentNullException(nameof(execute));
             return _commands.AsyncCommand(execute, canExecute, forceExecution, name);
         }
 

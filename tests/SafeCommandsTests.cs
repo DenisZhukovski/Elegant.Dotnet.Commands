@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,25 +7,34 @@ using Xunit;
 
 namespace Dotnet.Commands.UnitTests
 {
-    public class CommandsUnitTests
+    public class SafeCommandsTests
     {
+        private List<Exception> _exceptions = new List<Exception>();
+
+        private readonly ICommands _commands;
+
+        public SafeCommandsTests()
+        {
+            _commands = new Commands().Validated().Safe(ex => _exceptions.Add(ex));
+        }
+            
         [Fact]
         public void CreatesCommand()
         {
-            Assert.NotNull(new Commands().Command(() => { }));
+            Assert.NotNull(_commands.Command(() => { }));
         }
 
         [Fact]
         public void CreatesAsyncCommand()
         {
-            Assert.NotNull(new Commands().AsyncCommand(() => Task.CompletedTask));
+            Assert.NotNull(_commands.AsyncCommand(() => Task.CompletedTask));
         }
 
         [Fact]
         public void CommandCanExecuteFalse()
         {
             Assert.False(
-                new Commands()
+                _commands
                     .Command(() => { }, () => false)
                     .CanExecute(null)
             );
@@ -34,19 +43,9 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void CommandCanExecuteTrue()
         {
-            Assert.True(
-                new Commands()
-                    .Command(() => { }, () => true)
-                    .CanExecute(null)
-            );
-        }
-        
-        [Fact]
-        public void CommandCanExecuteTrue_WhenNull()
-        {
-            Assert.True(
-                new Commands()
-                    .Command(() => { })
+            Assert.False(
+                _commands
+                    .Command(() => { }, () => false)
                     .CanExecute(null)
             );
         }
@@ -55,7 +54,7 @@ namespace Dotnet.Commands.UnitTests
         public void AsyncCommandCanExecuteFalse()
         {
             Assert.False(
-                new Commands()
+                _commands
                     .AsyncCommand(() => Task.CompletedTask, () => false)
                     .CanExecute(null)
             );
@@ -64,19 +63,9 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void AsyncCommandCanExecuteTrue()
         {
-            Assert.True(
-                new Commands()
-                    .AsyncCommand(() => Task.CompletedTask, () => true)
-                    .CanExecute(null)
-            );
-        }
-        
-        [Fact]
-        public void AsyncCommandCanExecuteTrue_WhenNull()
-        {
-            Assert.True(
-                new Commands()
-                    .AsyncCommand(() => Task.CompletedTask)
+            Assert.False(
+                _commands
+                    .AsyncCommand(() => Task.CompletedTask, () => false)
                     .CanExecute(null)
             );
         }
@@ -86,7 +75,7 @@ namespace Dotnet.Commands.UnitTests
         {
             var longTask = new TaskCompletionSource<bool>();
             int executionsCount = 0;
-            var commandTasks = new Commands().ExecuteAsync(
+            var commandTasks = _commands.ExecuteAsync(
                 () =>
                 {
                     executionsCount++;
@@ -103,7 +92,7 @@ namespace Dotnet.Commands.UnitTests
         public void CommandExecution()
         {
             int executionsCount = 0;
-            new Commands()
+            _commands
                 .Command(() => executionsCount++)
                 .Execute(null);
             Assert.Equal(1, executionsCount);
@@ -113,7 +102,7 @@ namespace Dotnet.Commands.UnitTests
         public void CommandExecutionWithParameter()
         {
             int expectedNumber = 0;
-            new Commands()
+            _commands
                 .Command<int>((number) => expectedNumber = number)
                 .Execute(13);
             Assert.Equal(13, expectedNumber);
@@ -123,7 +112,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task AsyncCommandExecutionWithParameter()
         {
             int expectedNumber = 0;
-            await new Commands()
+            await _commands
                 .AsyncCommand<int>(async (number) =>
                 {
                     await Task.Delay(300);
@@ -137,7 +126,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task AsyncCommandExecution()
         {
             int executionsCount = 0;
-            await new Commands()
+            await _commands
                 .AsyncCommand(async () =>
                 {
                     await Task.Delay(500);
@@ -151,7 +140,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task AsyncCommandSyncExecution()
         {
             int executionsCount = 0;
-            new Commands()
+            _commands
                 .AsyncCommand(async () =>
                 {
                     await Task.Delay(500);
@@ -167,7 +156,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task CanExecuteAsync()
         {
             int executionsCount = 0;
-            await new Commands()
+            await _commands
                 .AsyncCommand<int>(async (number) =>
                 {
                     await Task.Delay(500);
@@ -185,7 +174,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task CanExecuteAsyncFalse()
         {
             int executionsCount = 0;
-            await new Commands()
+            await _commands
                 .AsyncCommand<int>(async (number) =>
                 {
                     await Task.Delay(500);
@@ -204,6 +193,8 @@ namespace Dotnet.Commands.UnitTests
         {
             Assert.Throws<ArgumentException>(() =>
                 new Commands()
+                    .Safe(ex => false)
+                    .Validated()
                     .Command(() =>
                     {
                         throw new ArgumentException(string.Empty);
@@ -217,6 +208,8 @@ namespace Dotnet.Commands.UnitTests
         {
             Assert.Throws<ArgumentException>(() =>
                 new Commands()
+                    .Safe(ex => false)
+                    .Validated()
                     .Command<int>((number) =>
                     {
                         throw new ArgumentException(string.Empty);
@@ -230,6 +223,8 @@ namespace Dotnet.Commands.UnitTests
         {
             return Assert.ThrowsAsync<ArgumentException>(() =>
                 new Commands()
+                    .Safe(ex => false)
+                    .Validated()
                     .AsyncCommand(async () =>
                     {
                         await Task.Delay(300);
@@ -244,6 +239,8 @@ namespace Dotnet.Commands.UnitTests
         {
             return Assert.ThrowsAsync<ArgumentException>(() =>
                 new Commands()
+                    .Safe(ex => false)
+                    .Validated()
                     .AsyncCommand<int>(async (number) =>
                     {
                         await Task.Delay(300);
@@ -257,7 +254,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task CanExecuteFalse_AsyncCommandNotExecuted()
         {
             var commandExecuted = false;
-            await new Commands()
+            await _commands
                 .AsyncCommand(async () =>
                 {
                     await Task.Delay(500);
@@ -272,7 +269,7 @@ namespace Dotnet.Commands.UnitTests
         public void CanExecuteFalse_CommandNotExecuted()
         {
             var commandExecuted = false;
-            new Commands()
+            _commands
                 .Command(() => {
                     commandExecuted = true;
                 }, () => false)
@@ -285,7 +282,7 @@ namespace Dotnet.Commands.UnitTests
         public void CanExecuteIsNull_CommandExecuted()
         {
             var commandExecuted = false;
-            new Commands()
+            _commands
                 .Command(() => {
                     commandExecuted = true;
                 }, null)
@@ -298,7 +295,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task CanExecuteTrue_CommandExecuted()
         {
             var commandExecuted = false;
-            await new Commands()
+            await _commands
                 .Command(() => {
                     commandExecuted = true;
                 }, () => true)
@@ -311,7 +308,7 @@ namespace Dotnet.Commands.UnitTests
         public void CanExecuteChangedEvent()
         {
             var commandExecuted = true;
-            var command = new Commands().Command(
+            var command = _commands.Command(
                 () => { },
                 () => false
             );
@@ -330,7 +327,7 @@ namespace Dotnet.Commands.UnitTests
         public async Task ForceExecute()
         {
             int executionsCount = 0;
-            var commands = new Commands();
+            var commands = _commands;
             var commandsTasks = new List<Task>();
             for (var i = 0; i < 100; i++)
             {
@@ -351,7 +348,7 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void TwoDifferentCommands()
         {
-            var commands = new Commands();
+            var commands = _commands;
             Assert.NotEqual(
                 commands.Command(() => { }),
                 commands.Command(() => { })
@@ -361,7 +358,7 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void TwoDifferentAsyncCommands()
         {
-            var commands = new Commands();
+            var commands = _commands;
             Assert.NotEqual(
                 commands.AsyncCommand(() => Task.CompletedTask),
                 commands.AsyncCommand(() => Task.CompletedTask)
@@ -369,12 +366,14 @@ namespace Dotnet.Commands.UnitTests
         }
 
         [Fact]
-        public Task AsyncCommand_CancelThrowsException()
+        public Task  AsyncCommand_CancelThrowsException()
         {
             var asyncCommand = new Commands()
+                .Safe(ex => false)
+                .Validated()
                 .AsyncCommand(async (ct) =>
                 {
-                    await Task.Delay(3000);
+                    await Task.Delay(3000).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
                     throw new ArgumentException(string.Empty);
                 });
@@ -392,12 +391,14 @@ namespace Dotnet.Commands.UnitTests
         public Task AsyncCommandWithParam_CancelThrowsException()
         {
             var asyncCommand = new Commands()
+                .Safe(ex => false)
+                .Validated()
                 .AsyncCommand<int>(async (param, ct) =>
                 {
-                    await Task.Delay(3000);
+                    await Task.Delay(3000).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
                     throw new ArgumentException(string.Empty);
-                });
+                }, (Func<int, bool>?)null);
             Task.Run(async () =>
             {
                 await Task.Delay(1000);
@@ -412,9 +413,11 @@ namespace Dotnet.Commands.UnitTests
         public Task AsyncCommand_NotCancelCommand_IfCancellationWasRequestedBeforeExecuting()
         {
             var asyncCommand = new Commands()
+                .Safe(ex => false)
+                .Validated()
                 .AsyncCommand(async (ct) =>
                 {
-                    await Task.Delay(500);
+                    await Task.Delay(500, ct).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
                     throw new ArgumentException(string.Empty);
                 });

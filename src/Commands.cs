@@ -17,11 +17,6 @@ namespace Dotnet.Commands
 		private readonly ICommandExecutionLock _commandExecutionLock;
 		private long _lockIndex;
 
-		public bool IsLocked
-		{
-			get { return _commandExecutionLock.IsLocked; }
-		}
-
 		public Commands()
 			: this(DefaultCommandExecutionInterval)
         {
@@ -36,6 +31,8 @@ namespace Dotnet.Commands
 		{
 			_commandExecutionLock = commandExecutionLock;
 		}
+		
+		public bool IsLocked => _commandExecutionLock.IsLocked;
 
 		public IAsyncCommand AsyncCommand(
 			Func<CancellationToken, Task> execute,
