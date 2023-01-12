@@ -89,6 +89,37 @@ asyncCommnad.Cancel();
 
 ```
 
+## Safe commands
+
+Somethimes it can be handy to create a command and catch all the exceptions that can occur during execution. [SafeCommands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/SafeCommands.cs) factory decorator can be used to do so.
+
+```cs
+
+private ICommands _commands;
+
+public ViewModel(ICommmands commands)
+{
+    _commands = commands
+        .Cached()
+        .Safe(ex => _dialo.ShowAlert("Command Error", ex.Message));
+}
+
+public ICommand FooCommand => _commands
+    .Safe(ex => {
+        if (ex is ValidationException)
+        {
+            ErrorText = "Incorrect Validation";
+            return true;
+        }
+        return false;
+    })
+    .Command(OnFooDelegate);
+
+```
+
+It can be noticed that Safe extension method was used twice in the code example above.
+The first method uses Action<Exception> as argument what causing not further exception propagation while the second method conditionally can stop exception propagation.
+
 ## Cached commands
 
 Somethimes it can be handy to cache the command once its been created by [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory. Especially useful case is view models.
