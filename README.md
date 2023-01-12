@@ -101,7 +101,7 @@ public ViewModel(ICommmands commands)
 {
     _commands = commands
         .Cached()
-        .Safe(ex => _dialo.ShowAlert("Command Error", ex.Message));
+        .Safe(ex => _dialog.ShowAlert("Command Error", ex.Message));
 }
 
 public ICommand FooCommand => _commands
