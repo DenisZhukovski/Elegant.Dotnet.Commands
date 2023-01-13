@@ -98,7 +98,7 @@ steps:
     configuration: '$(buildConfiguration)'
     msbuildArguments: '/p:PackageVersion=$(NugetPackageVersion) /t:pack /p:packageOutputPath=$(Build.ArtifactStagingDirectory) /p:IncludeReferencedProjects=true'
 
-- task: NuGetAuthenticate@0
+- task: NuGetAuthenticateV1
   condition: and(succeeded(), eq(variables.isDevelop, true))
   inputs:
     nuGetServiceConnections: 'Elegant.Commands'
