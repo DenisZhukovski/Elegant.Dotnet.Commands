@@ -99,9 +99,11 @@ steps:
     msbuildArguments: '/p:PackageVersion=$(NugetPackageVersion) /t:pack /p:packageOutputPath=$(Build.ArtifactStagingDirectory) /p:IncludeReferencedProjects=true'
 
 - task: NuGetAuthenticate@0
+  condition: and(succeeded(), eq(variables.isDevelop, true))
   inputs:
     nuGetServiceConnections: 'Elegant.Commands'
 - task: NuGetCommand@2
+  condition: and(succeeded(), eq(variables.isDevelop, true))
   inputs:
     command: push
     nuGetFeedType: external
