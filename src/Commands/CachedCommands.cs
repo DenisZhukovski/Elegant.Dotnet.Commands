@@ -25,7 +25,11 @@ namespace Dotnet.Commands
             bool forceExecution = false,
             string? name = null)
         {
-            return _commands.AsyncCommand(execute, canExecute, forceExecution, name);
+            _ = name ?? throw new ArgumentNullException(nameof(name));
+            return (IAsyncCommand<TParam>)_cache.GetOrAdd(
+                name,
+                () =>_commands.AsyncCommand(execute, canExecute, forceExecution, name)
+            );
         }
 
         public ICommand Command(
