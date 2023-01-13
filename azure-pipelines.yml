@@ -31,7 +31,7 @@ variables:
   value: '1.0'
 - name: PatchNumber
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-    value: $[format('.{0}', [counter(variables['releaseBuildNumber'], 0)])]
+    value: $[format('.{0}', counter(variables['releaseBuildNumber'], 0))]
   ${{ else }}:
     value: '-preview'
 - name: NugetPackageVersion
