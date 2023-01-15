@@ -98,17 +98,8 @@ steps:
     configuration: '$(buildConfiguration)'
     msbuildArguments: '/p:PackageVersion=$(NugetPackageVersion) /t:pack /p:packageOutputPath=$(Build.ArtifactStagingDirectory) /p:IncludeReferencedProjects=true'
 
-- task: NuGetAuthenticate@1
-  condition: and(succeeded(), eq(variables.isDevelop, true))
+- task: PowerShell@2
   inputs:
-    nuGetServiceConnections: 'Elegant_Commands'
-
-- task: NuGetCommand@2
-  displayName: 'NuGet push'
-  condition: and(succeeded(), eq(variables.isDevelop, true))
-  inputs:
-    command: push
-    nuGetFeedType: external
-    publishFeedCredentials: 'Elegant_Commands'
-
-
+    configuration: '$(buildConfiguration)'
+    targetType: 'inline'
+    script: 'nuget push $(Build.ArtifactStagingDirectory)\*.nupkg -ApiKey $(NugetApiKey) -Source https://api.nuget.org/v3/index.json'
