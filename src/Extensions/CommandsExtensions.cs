@@ -7,6 +7,22 @@ namespace Dotnet.Commands
 {
     public static class CommandsExtensions
     {
+        /// <summary>
+        /// This interval is necessary to avoid multi tapping command from the user
+        /// It can happen when user clicks simultaneously on several buttons on the screen
+        /// </summary>
+        public static readonly int DefaultCommandExecutionInterval = 300;        
+        
+        public static ICommands Locked(this ICommands commands)
+        {
+            return commands.Locked(DefaultCommandExecutionInterval);
+        }
+        
+        public static ICommands Locked(this ICommands commands, int commandExecutionInterval)
+        {
+            return new LockedCommands(commands, commandExecutionInterval);
+        }
+        
         public static ICommands Safe(this ICommands commands, Action<Exception> onError)
         {
             return new SafeCommands(commands, (exception) =>

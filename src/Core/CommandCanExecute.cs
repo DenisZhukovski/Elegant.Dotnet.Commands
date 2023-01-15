@@ -1,8 +1,20 @@
 using System;
-using System.Threading.Tasks;
 
 namespace Dotnet.Commands
 {
+    public class CommandCanExecute : CommandCanExecute<object>
+    {
+        public CommandCanExecute(Func<bool>? canExecute)
+            : base(_ => CanExecute(canExecute))
+        {
+        }
+        
+        private static bool CanExecute(Func<bool>? canExecute = null)
+        {
+        	return canExecute == null || canExecute();
+        }
+    }
+    
     public class CommandCanExecute<TArgument> : ICanExecute<TArgument>
     {
         private bool? _canExecutePreviously;

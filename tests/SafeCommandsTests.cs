@@ -11,9 +11,14 @@ namespace Dotnet.Commands.UnitTests
         private readonly ICommands _commands;
 
         public SafeCommandsTests()
-            : base(new Commands().Validated().Safe(ex => false))
+            : this(new Commands().Validated())
         {
-            _commands = new Commands().Validated().Safe(ex => _exceptions.Add(ex));
+        }
+        
+        protected SafeCommandsTests(ICommands commands)
+            : base(commands.Safe(ex => false))
+        {
+            _commands = commands.Safe(ex => _exceptions.Add(ex));
         }
 
         [Fact]

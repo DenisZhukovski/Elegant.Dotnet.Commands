@@ -7,11 +7,17 @@ namespace Dotnet.Commands.UnitTests
 {
     public class CachedCommandsTests : CommandsCommonTests
     {
-        private readonly ICommands _commands = new Commands(0).Cached();
+        private readonly ICommands _commands;
 
         public CachedCommandsTests()
-            : base(new Commands(0).Cached())
+            : this(new Commands())
         {
+        }
+        
+        protected CachedCommandsTests(ICommands commands)
+            : base(commands.Cached())
+        {
+            _commands = commands.Cached();
         }
 
         [Fact]
@@ -35,7 +41,7 @@ namespace Dotnet.Commands.UnitTests
         [Fact]
         public void CachedCommandInViewModel()
         {
-            var viewModel = new CommandsViewModel(new Commands(0));
+            var viewModel = new CommandsViewModel(new Commands());
             viewModel.IncreaseQuantityCommand.Execute();
             viewModel.IncreaseQuantityCommand.Execute();
             Assert.Equal(

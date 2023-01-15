@@ -17,8 +17,6 @@ namespace Dotnet.Commands
             _commands = commands;
         }
 
-        public bool IsLocked => _commands.IsLocked;
-
         public IAsyncCommand<TParam> AsyncCommand<TParam>(
             Func<TParam?, CancellationToken, Task> execute, 
             Func<TParam?, Task<bool>>? canExecute = null, 
@@ -82,11 +80,6 @@ namespace Dotnet.Commands
                 name,
                 () => _commands.AsyncCommand(execute, canExecute, forceExecution, name)
             );
-        }
-
-        public void ForceRelease()
-        {
-            _commands.ForceRelease();
         }
     }
 }

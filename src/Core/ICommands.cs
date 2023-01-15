@@ -8,26 +8,6 @@ namespace Dotnet.Commands
 {
 	public interface ICommands
 	{
-		bool IsLocked { get; }
-
-		IAsyncCommand AsyncCommand(
-			Func<CancellationToken, Task> execute,
-			Func<bool>? canExecute = null,
-			bool forceExecution = false,
-			[CallerMemberName] string? name = null);
-
-        IAsyncCommand<TParam> AsyncCommand<TParam>(
-			Func<TParam?, CancellationToken, Task> execute,
-			Func<TParam?, bool>? canExecute = null,
-			bool forceExecution = false,
-			[CallerMemberName] string? name = null);
-
-        public IAsyncCommand<TParam> AsyncCommand<TParam>(
-	        Func<TParam?, CancellationToken, Task> execute,
-	        Func<TParam?, Task<bool>>? canExecute = null,
-	        bool forceExecution = false,
-	        [CallerMemberName] string? name = null);
-
 		ICommand Command(
 			Action execute,
 			Func<bool>? canExecute = null,
@@ -39,7 +19,23 @@ namespace Dotnet.Commands
 			Func<TParam, bool>? canExecute = null,
 			bool forceExecution = false,
 			[CallerMemberName] string? name = null);
+		
+		IAsyncCommand AsyncCommand(
+			Func<CancellationToken, Task> execute,
+			Func<bool>? canExecute = null,
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null);
 
-		void ForceRelease();
+		IAsyncCommand<TParam> AsyncCommand<TParam>(
+			Func<TParam?, CancellationToken, Task> execute,
+			Func<TParam?, bool>? canExecute = null,
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null);
+
+		IAsyncCommand<TParam> AsyncCommand<TParam>(
+			Func<TParam?, CancellationToken, Task> execute,
+			Func<TParam?, Task<bool>>? canExecute = null,
+			bool forceExecution = false,
+			[CallerMemberName] string? name = null);
 	}
 }

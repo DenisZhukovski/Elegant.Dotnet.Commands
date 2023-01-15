@@ -17,8 +17,6 @@ namespace Dotnet.Commands
             _onError = onError;
         }
         
-        public bool IsLocked => _commands.IsLocked;
-
         public IAsyncCommand AsyncCommand(
             Func<CancellationToken, Task> execute,
             Func<bool>? canExecute = null, 
@@ -63,15 +61,9 @@ namespace Dotnet.Commands
         {
             return _commands.AsyncCommand(
                 execute.Safe(_onError),
-                (p) =>
-                {
-                    if (canExecute == null)
-                    {
-                        return Task.FromResult(true);
-                    }
-
-                    return canExecute.Safe(_onError)(p);
-                },
+                (p) => canExecute == null 
+                    ? Task.FromResult(true) :
+                    canExecute.Safe(_onError)(p),
                 forceExecution, 
                 name
             );
@@ -103,11 +95,6 @@ namespace Dotnet.Commands
                 forceExecution,
                 name
             );
-        }
-
-        public void ForceRelease()
-        {
-            _commands.ForceRelease();
         }
         
         private bool CanExecute<TParam>(TParam par, Func<TParam, bool>? canExecute = null)
