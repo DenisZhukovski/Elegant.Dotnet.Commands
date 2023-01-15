@@ -101,13 +101,14 @@ steps:
 - task: NuGetAuthenticate@1
   condition: and(succeeded(), eq(variables.isDevelop, true))
   inputs:
-    nuGetServiceConnections: 'Elegant.Commands'
+    nuGetServiceConnections: 'Elegant_Commands'
+
 - task: NuGetCommand@2
+  displayName: 'NuGet push'
   condition: and(succeeded(), eq(variables.isDevelop, true))
   inputs:
     command: push
     nuGetFeedType: external
-    versioningScheme: byEnvVar
-    versionEnvVar: $(NugetPackageVersion)
+    publishFeedCredentials: nuget.org
 
 
