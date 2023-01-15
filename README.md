@@ -61,25 +61,6 @@ await asyncCommnad.ExecuteAsync();
 
 ```
 
-## Can Execute Async
-
-The async commands also support CanExecuteAsync delegate. It can be useful when
-async operation has to be executed to detect of a command can execute.
-
-```cs
-var commands = new Commands().Validated();
-
-var asyncCommand = commands.AsyncCommand<int>(
-    async (number)=> { /* some async logic here */ }, 
-    async (number) => {
-         /* some async logic here to detect can execute async*/ 
-    }, 
-);
-
-await asyncCommnad.ExecuteAsync(12);
-
-```
-
 ## Cancellation Token
 
 The async command execution can be time comsuming and sometimes it can be useful to have a possibility to cancel the command execution. To make it possible [CancellationToken](https://docs.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken?view=net-6.0) entity is been passed into Async command execution delegate. To cancel the token async command Cancel method should be called.
@@ -102,6 +83,25 @@ var asyncCommand = commands.AsyncCommand(
 var commandTask = asyncCommnad.ExecuteAsync();
 await Task.Delay(1000);
 asyncCommnad.Cancel();
+
+```
+
+## Can Execute Async
+
+The async commands also support CanExecuteAsync delegate. It can be useful when
+async operation has to be executed to detect of a command can execute.
+
+```cs
+var commands = new Commands().Validated();
+
+var asyncCommand = commands.AsyncCommand<int>(
+    async (number)=> { /* some async logic here */ }, 
+    async (number) => {
+         /* some async logic here to detect can execute async*/ 
+    }, 
+);
+
+await asyncCommnad.ExecuteAsync(12);
 
 ```
 
