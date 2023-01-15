@@ -146,12 +146,15 @@ public ICommand FooCommand => _commands.Command(
 
 **Important:** _Under the hood [CachedCommands](https://github.com/DenisZhukovski/Elegant.Dotnet.Commands/blob/main/src/Commands/CachedCommands.cs) uses [CallerMemberName](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.compilerservices.callermembernameattribute?view=net-6.0) attribute to detect the same call. It means this entity should be created for each view model independently otherwise the collisions are possible._
 
-## Single command execution lock
+## Locked commands
 
- By default [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) factory supports single command execution strategy. [SingleCommandExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/SingleCommandExecutionLock.cs) entity is used to make it possible. The class is responsible for checking if any command is still executing once a new execution request comes for a command. If so the new execution command will be just ignored.
+### Single command execution lock
+
+ By default [LockedCommands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/LockedCommands.cs) factory decorator supports single command execution strategy ([SingleCommandExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/SingleCommandExecutionLock.cs) entity is used to make it possible). The class is responsible for checking if any command is still executing once a new execution request comes for a command. If so the new execution command will be just ignored.
  There is a way to force a command execution even when other command execution is still in progress.
 
  ```cs
+var commands = new Commands().Locked().Validated();
 var commnand = _commands.Command(
     OnFooDelegate, 
     CanExecute,
@@ -163,7 +166,7 @@ command.Execute();
 
 ```
 
-## Navigation command execution lock
+### Navigation command execution lock
 
  Sometimes it can be useluf to lock the command execution once navigation operation is in progress. [NavigationExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/NavigationExecutionLock.cs) entity can be used to make it possible. The class is responsible for checking if any navigation process is still happenning once a new execution request comes for a command. If so the new execution command will be just ignored.
 
@@ -208,7 +211,7 @@ public static class CommandsExtensions
 
 ## In Unit Tests
 
-Its important to now that by default commands factory has DefaultCommandExecutionInterval parameter
+Its important to be aware that once Locked commands decorator is used in the project the unit test execution can be affected. Locked commands factory has DefaultCommandExecutionInterval parameter.
 
 ```cs
 
@@ -220,12 +223,12 @@ public static int DefaultCommandExecutionInterval = 300;
 
 ```
 
-As a result it can affect unit tests execution process when commands can execute in concurrency. Its possible to set it to 0 once commands factory is created.
+As a result it can affect unit tests execution process when commands can execute in concurrency or one by one. Its possible to set it to 0 once commands factory is created.
    
 ```cs
 void SomeUnitTest()
 {
-   var commands = new Commands(0);
+   var commands = new Commands().Locked(0);
 }
 
 ```
