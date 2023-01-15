@@ -100,5 +100,6 @@ steps:
 
 - task: PowerShell@2
   inputs:
+    configuration: '$(buildConfiguration)'
     targetType: 'inline'
     script: 'nuget push $(Build.ArtifactStagingDirectory)\*.nupkg -ApiKey $(NugetApiKey) -Source https://api.nuget.org/v3/index.json'
