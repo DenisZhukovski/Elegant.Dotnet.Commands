@@ -29,6 +29,22 @@ var command = commands.Command(
 
 ```
 
+Recommened registration line with full featured commands factory.
+
+```cs
+container.RegisterInstance<ICommands>(
+   new Commands()
+      .Locked() // Single command execution. Handy to avoid multitapping problem from UI.
+      .Validated()
+      .Safe(ex => 
+      {
+         // Log the exception to monitoring service.
+         // Show the error to the user. DialogService can be used for mobile apps.
+      })
+);
+
+```
+
 ## Async Command
 
 Commands factory also supports async commands delegates. It can be especially useful in unit tests. Sometimes the unit test has to wait while command async delegate will be executed before it can check the result.
