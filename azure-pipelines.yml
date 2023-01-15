@@ -28,7 +28,7 @@ variables:
 - name: isDevelop
   value: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
 - name: releaseBuildNumber
-  value: '1.0'
+  value: '1.1'
 - name: PatchNumber
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
     value: $[format('.{0}', counter(variables['releaseBuildNumber'], 0))]
@@ -101,13 +101,14 @@ steps:
 - task: NuGetAuthenticate@1
   condition: and(succeeded(), eq(variables.isDevelop, true))
   inputs:
-    nuGetServiceConnections: 'Elegant.Commands'
+    nuGetServiceConnections: 'Elegant_Commands'
+
 - task: NuGetCommand@2
+  displayName: 'NuGet push'
   condition: and(succeeded(), eq(variables.isDevelop, true))
   inputs:
     command: push
     nuGetFeedType: external
-    versioningScheme: byEnvVar
-    versionEnvVar: $(NugetPackageVersion)
+    publishFeedCredentials: 'Elegant_Commands'
 
 

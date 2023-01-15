@@ -2,7 +2,7 @@ using System;
 
 namespace Dotnet.Commands
 {
-    public interface ICanExecute<TArgument>
+    public interface ICanExecute<in TArgument>
     {
         event EventHandler? CanExecuteChanged;
         

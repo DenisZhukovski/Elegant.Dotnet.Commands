@@ -16,12 +16,10 @@ namespace Dotnet.Commands
             _commands = commands;
             _onError = onError;
         }
-        
-        public bool IsLocked => _commands.IsLocked;
 
         public IAsyncCommand AsyncCommand(
             Func<CancellationToken, Task> execute,
-            Func<bool>? canExecute = null, 
+            Func<bool>? canExecute = null,
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
@@ -35,7 +33,7 @@ namespace Dotnet.Commands
 
         public IAsyncCommand<TParam> AsyncCommand<TParam>(
             Func<TParam, CancellationToken, Task> execute,
-            Func<TParam, bool>? canExecute = null, 
+            Func<TParam, bool>? canExecute = null,
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
@@ -63,36 +61,30 @@ namespace Dotnet.Commands
         {
             return _commands.AsyncCommand(
                 execute.Safe(_onError),
-                (p) =>
-                {
-                    if (canExecute == null)
-                    {
-                        return Task.FromResult(true);
-                    }
-
-                    return canExecute.Safe(_onError)(p);
-                },
-                forceExecution, 
+                (p) => canExecute == null
+                    ? Task.FromResult(true)
+                    : canExecute.Safe(_onError)(p),
+                forceExecution,
                 name
             );
         }
 
         public ICommand Command(
-            Action execute, 
-            Func<bool> canExecute = null, 
+            Action execute,
+            Func<bool> canExecute = null,
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
             return _commands.Command(
                 execute.Safe(_onError),
                 () => CanExecute(canExecute),
-                forceExecution, 
+                forceExecution,
                 name
             );
         }
 
         public ICommand Command<TParam>(
-            Action<TParam> execute, 
+            Action<TParam> execute,
             Func<TParam, bool> canExecute = null,
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
@@ -105,11 +97,6 @@ namespace Dotnet.Commands
             );
         }
 
-        public void ForceRelease()
-        {
-            _commands.ForceRelease();
-        }
-        
         private bool CanExecute<TParam>(TParam par, Func<TParam, bool>? canExecute = null)
         {
             return canExecute == null || canExecute.Safe(_onError)(par);

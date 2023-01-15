@@ -11,7 +11,7 @@ namespace Dotnet.Commands.UnitTests
     {
         private readonly ICommands _commands;
 
-        public CommandsCommonTests(ICommands commands)
+        protected CommandsCommonTests(ICommands commands)
         {
             _commands = commands;
         }
@@ -86,24 +86,6 @@ namespace Dotnet.Commands.UnitTests
                     .AsyncCommand(() => Task.CompletedTask)
                     .CanExecute(null)
             );
-        }
-
-        [Fact]
-        public async Task LongAsyncCommandExecution_IgnoresAllOtherExecutions()
-        {
-            var longTask = new TaskCompletionSource<bool>();
-            int executionsCount = 0;
-            var commandTasks = _commands.ExecuteAsync(
-                () =>
-                {
-                    executionsCount++;
-                    return longTask.Task;
-                },
-                count: 100
-            );
-            longTask.SetResult(true);
-            await Task.WhenAll(commandTasks);
-            Assert.Equal(1, executionsCount);
         }
 
         [Fact]
@@ -328,28 +310,6 @@ namespace Dotnet.Commands.UnitTests
         }
 
         [Fact]
-        public async Task ForceExecute()
-        {
-            int executionsCount = 0;
-            var commands = _commands;
-            var commandsTasks = new List<Task>();
-            for (var i = 0; i < 100; i++)
-            {
-                commandsTasks.Add(
-                    commands
-                        .AsyncCommand(async () =>
-                        {
-                            await Task.Delay(500);
-                            Interlocked.Increment(ref executionsCount);
-                        }, forceExecution: true)
-                        .ExecuteAsync()
-                ); 
-            }
-            await Task.WhenAll(commandsTasks);
-            Assert.Equal(100, executionsCount);
-        }
-
-        [Fact]
         public virtual void TwoDifferentCommands()
         {
             var commands = _commands;
@@ -375,7 +335,7 @@ namespace Dotnet.Commands.UnitTests
             var asyncCommand = _commands
                 .AsyncCommand(async (ct) =>
                 {
-                    await Task.Delay(3000);
+                    await Task.Delay(3000).ConfigureAwait(false);
                     ct.ThrowIfCancellationRequested();
                     throw new ArgumentException(string.Empty);
                 });

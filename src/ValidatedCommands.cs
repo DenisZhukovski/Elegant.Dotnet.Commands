@@ -15,8 +15,6 @@ namespace Dotnet.Commands
             _commands = commands;
         }
 
-        public bool IsLocked => _commands.IsLocked;
-
         public IAsyncCommand AsyncCommand(
             Func<CancellationToken, Task> execute,
             Func<bool>? canExecute = null,
@@ -38,7 +36,7 @@ namespace Dotnet.Commands
         }
 
         public IAsyncCommand<TParam> AsyncCommand<TParam>(
-            Func<TParam?, CancellationToken, Task> execute, 
+            Func<TParam?, CancellationToken, Task> execute,
             Func<TParam?, Task<bool>>? canExecute = null,
             bool forceExecution = false,
             string? name = null)
@@ -65,11 +63,6 @@ namespace Dotnet.Commands
         {
             _ = execute ?? throw new ArgumentNullException(nameof(execute));
             return _commands.Command(execute, canExecute, forceExecution, name);
-        }
-
-        public void ForceRelease()
-        {
-            _commands.ForceRelease();
         }
     }
 }
