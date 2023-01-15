@@ -36,7 +36,7 @@ namespace Dotnet.Commands
         }
 
         public IAsyncCommand<TParam> AsyncCommand<TParam>(
-            Func<TParam?, CancellationToken, Task> execute, 
+            Func<TParam?, CancellationToken, Task> execute,
             Func<TParam?, Task<bool>>? canExecute = null,
             bool forceExecution = false,
             string? name = null)
