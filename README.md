@@ -13,11 +13,11 @@
   [![EO principles respected here](https://www.elegantobjects.org/badge.svg)](https://www.elegantobjects.org)
 </h3>
 
-The repository implements [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) that usually used in .NET mobile projects supporting [MVVM design pattern](https://en.wikipedia.org/wiki/Model–view–viewmodel). The main goal is to provide an implementation for commands creation.
+The package implements [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) that is usually used in .NET mobile projects supporting [MVVM design pattern](https://en.wikipedia.org/wiki/Model–view–viewmodel). The main goal is to provide an implementation for commands instantiation.
 
 ## How to get started
 
-The main entity is [Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) class. The class is commands object factory. It creates a command for an action delegate which is passed into Command method.
+[Commands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Commands.cs) is the main entity. The class is commands object factory. It creates a command for an action delegate which is passed into Command method.
 
 ```cs
 // Validated() extension method adds argument null checks to all public methods
@@ -99,6 +99,7 @@ private ICommands _commands;
 
 public ViewModel(ICommmands commands)
 {
+    // Cached() extension method adds caching for commands.
     _commands = commands
         .Cached()
         .Safe(ex => _dialog.ShowAlert("Command Error", ex.Message));
@@ -168,7 +169,7 @@ command.Execute();
 
 ### Navigation command execution lock
 
- Sometimes it can be useluf to lock the command execution once navigation operation is in progress. [NavigationExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/NavigationExecutionLock.cs) entity can be used to make it possible. The class is responsible for checking if any navigation process is still happenning once a new execution request comes for a command. If so the new execution command will be just ignored.
+ Sometimes it can be useful to lock the command execution once navigation operation is in progress. [NavigationExecutionLock](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/Locks/NavigationExecutionLock.cs) entity can be used to make it possible. The class is responsible for checking if any navigation process is still happenning once a new execution request comes for a command. If so the new execution command will be just ignored.
 
 ## Useful extensions
 
