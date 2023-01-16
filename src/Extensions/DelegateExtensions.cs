@@ -6,7 +6,10 @@ namespace Dotnet.Commands
 {
     internal static class DelegateExtensions
     {
-        public static Action Safe(this Action? action, Func<Exception, bool> onError)
+        public static Action Safe(
+            this Action? action,
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return () =>
             {
@@ -16,7 +19,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }
@@ -24,7 +27,10 @@ namespace Dotnet.Commands
             };
         }
         
-        public static Action<T> Safe<T>(this Action<T>? action, Func<Exception, bool> onError)
+        public static Action<T> Safe<T>(
+            this Action<T>? action,
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return p =>
             {
@@ -34,7 +40,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }
@@ -42,7 +48,10 @@ namespace Dotnet.Commands
             };
         }
         
-        public static Func<T> Safe<T>(this Func<T>? action, Func<Exception, bool> onError)
+        public static Func<T> Safe<T>(
+            this Func<T>? action,
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return () =>
             {
@@ -54,7 +63,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }
@@ -64,7 +73,10 @@ namespace Dotnet.Commands
             };
         }
         
-        public static Func<T, TResult> Safe<T, TResult>(this Func<T, TResult>? action, Func<Exception, bool> onError)
+        public static Func<T, TResult> Safe<T, TResult>(
+            this Func<T, TResult>? action,
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return p =>
             {
@@ -74,7 +86,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }
@@ -84,7 +96,10 @@ namespace Dotnet.Commands
             };
         }
         
-        public static Func<CancellationToken, Task> Safe(this Func<CancellationToken, Task>? action, Func<Exception, bool> onError)
+        public static Func<CancellationToken, Task> Safe(
+            this Func<CancellationToken, Task>? action,
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return async ct =>
             {
@@ -97,7 +112,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }
@@ -105,7 +120,10 @@ namespace Dotnet.Commands
             };
         }
             
-        public static Func<T, Task> Safe<T>(this Func<T, Task>? action, Func<Exception, bool> onError)
+        public static Func<T, Task> Safe<T>(
+            this Func<T, Task>? action,
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return async p =>
             {
@@ -118,7 +136,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }
@@ -126,7 +144,10 @@ namespace Dotnet.Commands
             };
         }
         
-        public static Func<T, Task<T2>> Safe<T, T2>(this Func<T, Task<T2>>? action, Func<Exception, bool> onError)
+        public static Func<T, Task<T2>> Safe<T, T2>(
+            this Func<T, Task<T2>>? action,
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return async p =>
             {
@@ -141,7 +162,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }
@@ -151,7 +172,10 @@ namespace Dotnet.Commands
             };
         }
         
-        public static Func<T, T2, Task> Safe<T, T2>(this Func<T, T2, Task>? action, Func<Exception, bool> onError)
+        public static Func<T, T2, Task> Safe<T, T2>(
+            this Func<T, T2, Task>? action, 
+            Func<Exception, string, bool> onError,
+            string name)
         {
             return async (p, p2) =>
             {
@@ -164,7 +188,7 @@ namespace Dotnet.Commands
                 }
                 catch (Exception e)
                 {
-                    if (!onError(e))
+                    if (!onError(e, name))
                     {
                         throw;
                     }

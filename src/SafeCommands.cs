@@ -9,9 +9,9 @@ namespace Dotnet.Commands
     public class SafeCommands : ICommands
     {
         private readonly ICommands _commands;
-        private readonly Func<Exception, bool> _onError;
+        private readonly Func<Exception, string, bool> _onError;
 
-        public SafeCommands(ICommands commands, Func<Exception, bool> onError)
+        public SafeCommands(ICommands commands, Func<Exception, string, bool> onError)
         {
             _commands = commands;
             _onError = onError;
@@ -24,8 +24,8 @@ namespace Dotnet.Commands
             [CallerMemberName] string? name = null)
         {
             return _commands.AsyncCommand(
-                execute.Safe(_onError),
-                (Func<bool>)(() => CanExecute(canExecute)),
+                execute.Safe(_onError, name),
+                (Func<bool>)(() => CanExecute(name, canExecute)),
                 forceExecution,
                 name
             );
@@ -38,16 +38,8 @@ namespace Dotnet.Commands
             [CallerMemberName] string? name = null)
         {
             return _commands.AsyncCommand(
-                execute.Safe(_onError),
-                p =>
-                {
-                    if (canExecute == null)
-                    {
-                        return true;
-                    }
-
-                    return CanExecute(p, canExecute);
-                },
+                execute.Safe(_onError, name),
+                p => CanExecute(name, p, canExecute),
                 forceExecution,
                 name
             );
@@ -60,10 +52,10 @@ namespace Dotnet.Commands
             [CallerMemberName] string? name = null)
         {
             return _commands.AsyncCommand(
-                execute.Safe(_onError),
+                execute.Safe(_onError, name),
                 (p) => canExecute == null
                     ? Task.FromResult(true)
-                    : canExecute.Safe(_onError)(p),
+                    : canExecute.Safe(_onError, name)(p),
                 forceExecution,
                 name
             );
@@ -76,8 +68,8 @@ namespace Dotnet.Commands
             [CallerMemberName] string? name = null)
         {
             return _commands.Command(
-                execute.Safe(_onError),
-                () => CanExecute(canExecute),
+                execute.Safe(_onError, name),
+                () => CanExecute(name, canExecute),
                 forceExecution,
                 name
             );
@@ -90,21 +82,26 @@ namespace Dotnet.Commands
             [CallerMemberName] string? name = null)
         {
             return _commands.Command(
-                execute.Safe(_onError),
-                (p) => CanExecute(p, canExecute),
+                execute.Safe(_onError, name),
+                (p) => CanExecute(name, p, canExecute),
                 forceExecution,
                 name
             );
         }
 
-        private bool CanExecute<TParam>(TParam par, Func<TParam, bool>? canExecute = null)
+        private bool CanExecute<TParam>(
+            string name,
+            TParam par, 
+            Func<TParam, bool>? canExecute = null)
         {
-            return canExecute == null || canExecute.Safe(_onError)(par);
+            return canExecute == null || canExecute.Safe(_onError, name)(par);
         }
 
-        private bool CanExecute(Func<bool>? canExecute = null)
+        private bool CanExecute(
+            string name,
+            Func<bool>? canExecute = null)
         {
-            return canExecute == null || canExecute.Safe(_onError)();
+            return canExecute == null || canExecute.Safe(_onError, name)();
         }
     }
 }
