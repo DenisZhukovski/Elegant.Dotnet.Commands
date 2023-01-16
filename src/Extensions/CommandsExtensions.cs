@@ -25,14 +25,24 @@ namespace Dotnet.Commands
         
         public static ICommands Safe(this ICommands commands, Action<Exception> onError)
         {
-            return new SafeCommands(commands, (exception) =>
+            return commands.Safe((exception, _) => onError(exception));
+        }
+        
+        public static ICommands Safe(this ICommands commands, Action<Exception, string> onError)
+        {
+            return new SafeCommands(commands, (exception, name) =>
             {
-                onError(exception);
+                onError(exception, name);
                 return true;
             });
         }
         
         public static ICommands Safe(this ICommands commands, Func<Exception, bool> onError)
+        {
+            return commands.Safe((exception, _) => onError(exception));
+        }
+        
+        public static ICommands Safe(this ICommands commands, Func<Exception, string, bool> onError)
         {
             return new SafeCommands(commands, onError);
         }
