@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dotnet.Commands.UnitTests.Mocks;
 using Xunit;
@@ -48,6 +49,24 @@ namespace Dotnet.Commands.UnitTests
                 2,
                 viewModel.Quantity
             );
+        }
+
+        /*
+         * The main idea to check that cached commands are thread safe dictionary can handle getAdd in multi-threading environment.
+         */
+        [Fact]
+        public Task CachedCommandInViewModelThreadSafe()
+        {
+            var viewModel = new CommandsViewModel(new Commands().Validated());
+            return Asserts.DoesNotThrow(async () =>
+            {
+                var tasks = new List<Task>();
+                for (var i = 0; i < 10000000; i++)
+                {
+                    tasks.Add(Task.Run(() => viewModel.IncreaseQuantityCommand));
+                }
+                await Task.WhenAll(tasks);
+            });
         }
 
         [Fact]
