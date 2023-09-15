@@ -12,7 +12,7 @@
         <PackageProjectUrl>https://github.com/DenisZhukovski/Dotnet.Commands</PackageProjectUrl>
         <RepositoryUrl>https://github.com/DenisZhukovski/Dotnet.Commands</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageVersion>1.0.1</PackageVersion>
+        <PackageVersion>1.0.2</PackageVersion>
         <LangVersion>9.0</LangVersion>
 	</PropertyGroup>
 </Project>
