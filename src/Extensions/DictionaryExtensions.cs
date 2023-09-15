@@ -12,7 +12,13 @@ namespace Dotnet.Commands
         {
             if (!dictionary.ContainsKey(key))
             {
-                dictionary.Add(key, getFunc());
+                lock (dictionary)
+                {
+                    if (!dictionary.ContainsKey(key))
+                    {
+                        dictionary.Add(key, getFunc());
+                    }
+                }
             }
 
             return dictionary[key];
