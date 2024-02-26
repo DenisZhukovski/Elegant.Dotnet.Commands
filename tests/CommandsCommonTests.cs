@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Dotnet.Commands.UnitTests.Mocks;
@@ -112,13 +113,15 @@ namespace Dotnet.Commands.UnitTests
         public async Task AsyncCommandExecutionWithParameter()
         {
             int expectedNumber = 0;
-            await _commands
-                .AsyncCommand<int>(async (number) =>
-                {
-                    await Task.Delay(300);
-                    expectedNumber = number;
-                })
-                .ExecuteAsync(13);
+            Assert.True(
+                await _commands
+                    .AsyncCommand<int>(async number =>
+                    {
+                        await Task.Delay(300);
+                        expectedNumber = number;
+                    })
+                    .ExecuteAsync(13)
+            );
             Assert.Equal(13, expectedNumber);
         }
 
@@ -126,13 +129,16 @@ namespace Dotnet.Commands.UnitTests
         public async Task AsyncCommandExecution()
         {
             int executionsCount = 0;
-            await _commands
-                .AsyncCommand(async () =>
-                {
-                    await Task.Delay(500);
-                    executionsCount++;
-                })
-                .ExecuteAsync(null);
+            Assert.True(
+                await _commands
+                    .AsyncCommand(async () =>
+                    {
+                        await Task.Delay(500);
+                        executionsCount++;
+                    })
+                    .ExecuteAsync(null)
+            );
+            
             Assert.Equal(1, executionsCount);
         }
         
@@ -156,17 +162,19 @@ namespace Dotnet.Commands.UnitTests
         public async Task CanExecuteAsync()
         {
             int executionsCount = 0;
-            await _commands
-                .AsyncCommand<int>(async (number) =>
-                {
-                    await Task.Delay(500);
-                    executionsCount++;
-                }, async (number) =>
-                {
-                    await Task.Delay(500);
-                    return true;
-                })
-                .ExecuteAsync(12);
+            Assert.True(
+                await _commands
+                    .AsyncCommand<int>(async (number) =>
+                    {
+                        await Task.Delay(500);
+                        executionsCount++;
+                    }, async (number) =>
+                    {
+                        await Task.Delay(500);
+                        return true;
+                    })
+                    .ExecuteAsync(12)
+            );
             Assert.Equal(1, executionsCount);
         }
         
@@ -174,17 +182,19 @@ namespace Dotnet.Commands.UnitTests
         public async Task CanExecuteAsyncFalse()
         {
             int executionsCount = 0;
-            await _commands
-                .AsyncCommand<int>(async (number) =>
-                {
-                    await Task.Delay(500);
-                    executionsCount++;
-                }, async (number) =>
-                {
-                    await Task.Delay(500);
-                    return false;
-                })
-                .ExecuteAsync(12);
+            Assert.False(
+                await _commands
+                    .AsyncCommand<int>(async (number) =>
+                    {
+                        await Task.Delay(500);
+                        executionsCount++;
+                    }, async (number) =>
+                    {
+                        await Task.Delay(500);
+                        return false;
+                    })
+                    .ExecuteAsync(12)
+            );
             Assert.Equal(0, executionsCount);
         }
 
@@ -240,14 +250,15 @@ namespace Dotnet.Commands.UnitTests
         public async Task CanExecuteFalse_AsyncCommandNotExecuted()
         {
             var commandExecuted = false;
-            await _commands
-                .AsyncCommand(async () =>
-                {
-                    await Task.Delay(500);
-                    commandExecuted = true;
-                }, () => false)
-                .ExecuteAsync(null);
-
+            Assert.False(
+                await _commands
+                    .AsyncCommand(async () =>
+                    {
+                        await Task.Delay(500);
+                        commandExecuted = true;
+                    }, () => false)
+                    .ExecuteAsync(null)
+            );
             Assert.False(commandExecuted);
         }
 
