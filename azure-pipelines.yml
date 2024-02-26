@@ -90,7 +90,7 @@ steps:
   inputs:
     solution: '$(solution)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:PackageVersion=$(NugetPackageVersion) /t:pack /p:packageOutputPath=$(Build.ArtifactStagingDirectory) /p:IncludeReferencedProjects=true' /p:PackageReleaseNotes="$(releaseNotes)"'
+    msbuildArguments: '/p:PackageVersion=$(NugetPackageVersion) /t:pack /p:packageOutputPath=$(Build.ArtifactStagingDirectory) /p:IncludeReferencedProjects=true /p:PackageReleaseNotes="$(releaseNotes)"'
 
 - task: NuGetCommand@2
   displayName: 'NuGet push'
