@@ -98,4 +98,4 @@ steps:
   inputs:
     command: push
     nuGetFeedType: external
-    publishFeedCredentials: '$(publishFeedCredentials)'
+    publishFeedCredentials: 'Elegant_Commands'
