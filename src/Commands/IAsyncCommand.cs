@@ -5,7 +5,7 @@ namespace Dotnet.Commands
 {
 	public interface IAsyncCommand : ICommand
 	{
-		Task ExecuteAsync(object? parameter);
+		Task<bool> ExecuteAsync(object? parameter);
 
 		void RaiseCanExecuteChanged();
 
@@ -14,6 +14,6 @@ namespace Dotnet.Commands
 
 	public interface IAsyncCommand<in TParam> : IAsyncCommand
 	{
-		Task ExecuteAsync(TParam? parameter);
+		Task<bool> ExecuteAsync(TParam? parameter);
     }
 }

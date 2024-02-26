@@ -62,7 +62,7 @@ namespace Dotnet.Commands
             command.Execute(null);
         }
 
-        public static Task ExecuteAsync(this IAsyncCommand command)
+        public static Task<bool> ExecuteAsync(this IAsyncCommand command)
         {
             return command.ExecuteAsync(null);
         }
@@ -72,14 +72,14 @@ namespace Dotnet.Commands
             command.Execute(null);
         }
 
-        public static Task ExecuteAsync(this ICommand command, object parameter)
+        public static async Task<bool?> ExecuteAsync(this ICommand command, object parameter)
         {
             if (command is IAsyncCommand asyncCommand)
             {
-                return asyncCommand.ExecuteAsync(parameter);
+                return await asyncCommand.ExecuteAsync(parameter);
             }
             command.Execute(parameter);
-            return Task.CompletedTask;
+            return null;
         }
 
         public static IAsyncCommand AsyncCommand(

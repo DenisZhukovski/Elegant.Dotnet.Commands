@@ -63,12 +63,12 @@ namespace Dotnet.Commands
             _ = ExecuteAsync(parameter);
         }
 
-        public Task ExecuteAsync(object? parameter)
+        public Task<bool> ExecuteAsync(object? parameter)
         {
             return ExecuteAsync((TArgument?)parameter);
         }
 
-        public async Task ExecuteAsync(TArgument? parameter)
+        public async Task<bool> ExecuteAsync(TArgument? parameter)
         {
             bool canExecute;
             if (_canExecute is ICanExecuteAsync<TArgument> canExecuteAsync)
@@ -87,9 +87,11 @@ namespace Dotnet.Commands
                 var cancellationTokenSource = _cancellationTokenSource = new CancellationTokenSource();
                 await _action(parameter, cancellationTokenSource.Token);
             }
+
+            return canExecute;
         }
 
-        protected void RaiseCanExecuteChanged()
+        protected virtual void RaiseCanExecuteChanged()
         {
             _canExecute.RaiseCanExecuteChanged();
         }

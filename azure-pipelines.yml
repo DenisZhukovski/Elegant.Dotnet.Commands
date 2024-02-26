@@ -17,6 +17,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
+- group: General
 - name: solution
   value: '**/*.sln'
 - name: buildPlatform
@@ -39,17 +40,10 @@ variables:
 
 steps:
 - task: UseDotNet@2
-  displayName: Use .NET 6.0
+  displayName: Use .NET 8.0
   inputs:
     packageType: 'sdk'
-    version: '6.0.x'
-
-- task: UseDotNet@2
-  displayName: 'Use .NET Core sdk'
-  inputs:
-    packageType: sdk
-    version: 3.1.402
-    installationPath: $(Agent.ToolsDirectory)/dotnet
+    version: '8.0.x'
 
 - task: NuGetToolInstaller@1
 - task: NuGetCommand@2
@@ -96,12 +90,12 @@ steps:
   inputs:
     solution: '$(solution)'
     configuration: '$(buildConfiguration)'
-    msbuildArguments: '/p:PackageVersion=$(NugetPackageVersion) /t:pack /p:packageOutputPath=$(Build.ArtifactStagingDirectory) /p:IncludeReferencedProjects=true'
+    msbuildArguments: '/p:PackageVersion=$(NugetPackageVersion) /t:pack /p:packageOutputPath=$(Build.ArtifactStagingDirectory) /p:IncludeReferencedProjects=true /p:PackageReleaseNotes="$(releaseNotes)"'
 
-- task: PowerShell@2
+- task: NuGetCommand@2
+  displayName: 'NuGet push'
+  condition: and(succeeded(), eq(variables.isMain, true))
   inputs:
-    displayName: 'NuGet push'
-    condition: and(succeeded(), eq(variables.isDevelop, true))
-    configuration: '$(buildConfiguration)'
-    targetType: 'inline'
-    script: 'nuget push $(Build.ArtifactStagingDirectory)\*.nupkg -ApiKey $(NugetApiKey) -Source https://api.nuget.org/v3/index.json'
+    command: push
+    nuGetFeedType: external
+    publishFeedCredentials: 'Elegant_Commands'
