@@ -57,8 +57,8 @@ steps:
     projectKey: 'DenisZhukovski_Dotnet.Commands'
     projectName: 'Dotnet.Commands'
     extraProperties: |
-        sonar.cs.opencover.reportsPaths=$(Build.SourcesDirectory)\tests\Dotnet.Commands.UnitTests\coverage.opencover.xml
-        sonar.cs.vstest.reportsPaths=$(Agent.TempDirectory)\*.trx
+        sonar.cs.opencover.reportsPaths=$(Build.SourcesDirectory)/**/coverage.opencover.xml
+        sonar.cs.vstest.reportsPaths=$(Agent.TempDirectory)/*.trx
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
