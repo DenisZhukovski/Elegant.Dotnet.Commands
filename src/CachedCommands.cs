@@ -14,7 +14,7 @@ namespace Dotnet.Commands
 
         public CachedCommands(ICommands commands)
         {
-            _commands = commands;
+            _commands = OriginCommands(commands);
         }
 
         public IAsyncCommand<TParam> AsyncCommand<TParam>(
@@ -80,6 +80,20 @@ namespace Dotnet.Commands
                 name,
                 () => _commands.AsyncCommand(execute, canExecute, forceExecution, name)
             );
+        }
+        
+        /// <summary>
+        /// Useful method to detect and solve Cached commands usage.
+        /// It ,ay happen when developer passes cached commands into child viewmodel.
+        /// </summary>
+        private ICommands OriginCommands(ICommands commands)
+        {
+            if (commands is CachedCommands cachedCommands)
+            {
+                return OriginCommands(cachedCommands._commands);
+            }
+
+            return commands;
         }
     }
 }

@@ -50,6 +50,23 @@ namespace Dotnet.Commands.UnitTests
                 viewModel.Quantity
             );
         }
+        
+        [Fact]
+        public void CachedCommandInChildViewModel()
+        {
+            var viewModel = new CommandsViewModel(new Commands());
+            viewModel.IncreaseQuantityCommand.Execute();
+            viewModel.Child.IncreaseQuantityCommand.Execute();
+            Assert.Equal(
+                1,
+                viewModel.Quantity
+            );
+            
+            Assert.Equal(
+                1,
+                viewModel.Child.Quantity
+            );
+        }
 
         /*
          * The main idea to check that cached commands are thread safe dictionary can handle getAdd in multi-threading environment.
