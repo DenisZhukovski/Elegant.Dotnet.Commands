@@ -4,16 +4,19 @@ namespace Dotnet.Commands.UnitTests.Mocks
 {
     public class CommandsViewModel
     {
-        private readonly ICommands _cachedCommands;
+        private readonly ICommands _commands;
 
         public CommandsViewModel(ICommands commands)
         {
-            _cachedCommands = commands.Cached();
+            _commands = commands.Cached();
+            Child = new ChildViewModel(_commands);
         }
 
         public int Quantity { get; private set; }
 
-        public ICommand IncreaseQuantityCommand => _cachedCommands.Command(() =>
+        public ChildViewModel Child { get; }
+        
+        public ICommand IncreaseQuantityCommand => _commands.Command(() =>
         {
             Quantity++;
         });
