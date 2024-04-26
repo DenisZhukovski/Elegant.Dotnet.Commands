@@ -6,7 +6,7 @@ namespace Dotnet.Commands
 {
     public class SafeAsyncCommand<TArgument> : IAsyncCommand<TArgument>
     {
-        private readonly IAsyncCommand _command;
+        internal readonly IAsyncCommand _command;
         private readonly Func<Exception, string?, bool> _onError;
         private readonly string? _name;
 

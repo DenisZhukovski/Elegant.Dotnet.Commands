@@ -6,9 +6,9 @@ namespace Dotnet.Commands
 {
     public class SafeCommand : ICommand
     {
-        private readonly ICommand _command;
         private readonly Func<Exception, string?, bool> _onError;
         private readonly string? _name;
+        internal readonly ICommand _command;
 
         public SafeCommand(ICommand command, Func<Exception, string?, bool> onError, [CallerMemberName] string? name = null)
         {

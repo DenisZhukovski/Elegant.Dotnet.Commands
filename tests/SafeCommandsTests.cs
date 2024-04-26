@@ -41,6 +41,28 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public void UnsafeThrownException()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+                _commands
+                    .Command(() => throw new InvalidOperationException("Test"))
+                    .Unsafe()
+                    .Execute()
+            );
+        }
+        
+        [Fact]
+        public void UnsafeGenericThrownException()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+                _commands
+                    .Command<int>((i) => throw new InvalidOperationException("Test"))
+                    .Unsafe()
+                    .Execute(0)
+            );
+        }
+        
+        [Fact]
         public void HasErrorWhenExecute()
         {
            var command = _commands
@@ -87,6 +109,32 @@ namespace Dotnet.Commands.UnitTests
             
             Assert.Null(expected);
             Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public void UnsafeCanExecuteThrownException()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+                _commands
+                    .Command(
+                        () => {}, 
+                        () => throw new InvalidOperationException("Test"))
+                    .Unsafe()
+                    .CanExecute(0)
+            );
+        }
+        
+        [Fact]
+        public void UnsafeGenericCanExecuteThrownException()
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+                _commands
+                    .Command<int>(
+                        (i) => {}, 
+                        (i) => throw new InvalidOperationException("Test"))
+                    .Unsafe()
+                    .CanExecute(0)
+            );
         }
         
         [Fact]
@@ -197,6 +245,28 @@ namespace Dotnet.Commands.UnitTests
             
             Assert.Null(expected);
             Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public Task UnsafeAsyncThrowException()
+        {
+            return Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commands
+                    .AsyncCommand(() => throw new InvalidOperationException("Test"))
+                    .Unsafe()
+                    .ExecuteAsync()
+            );
+        }
+        
+        [Fact]
+        public Task UnsafeGenericAsyncThrowException()
+        {
+            return Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commands
+                    .AsyncCommand<int>((i) => throw new InvalidOperationException("Test"))
+                    .Unsafe()
+                    .ExecuteAsync(0)
+            );
         }
         
         [Fact]

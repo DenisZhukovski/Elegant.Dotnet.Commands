@@ -156,5 +156,35 @@ namespace Dotnet.Commands
 
             return false;
         }
+
+        public static ICommand Unsafe(this ICommand command)
+        {
+            if (command is SafeCommand safeCommand)
+            {
+                return safeCommand._command;
+            }
+
+            return command;
+        }
+        
+        public static IAsyncCommand Unsafe(this IAsyncCommand command)
+        {
+            if (command is SafeAsyncCommand<object> safeCommand)
+            {
+                return safeCommand._command;
+            }
+
+            return command;
+        }
+        
+        public static IAsyncCommand Unsafe<T>(this IAsyncCommand<T> command)
+        {
+            if (command is SafeAsyncCommand<T> safeCommand)
+            {
+                return safeCommand._command;
+            }
+
+            return command;
+        }
     }
 }
