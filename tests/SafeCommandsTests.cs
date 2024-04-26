@@ -7,7 +7,7 @@ namespace Dotnet.Commands.UnitTests
 {
     public class SafeCommandsTests : CommandsCommonTests
     {
-        private readonly List<Exception> _exceptions = new List<Exception>();
+        private readonly List<Exception> _exceptions = new();
         private readonly ICommands _commands;
 
         public SafeCommandsTests()
@@ -38,6 +38,15 @@ namespace Dotnet.Commands.UnitTests
             
             Assert.Null(expected);
             Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public void HasErrorWhenExecute()
+        {
+           var command = _commands
+                .Command(() => throw new InvalidOperationException("Test"));
+           command.Execute();
+           Assert.True(command.HasError());
         }
         
         [Fact]
@@ -81,6 +90,15 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public void HasErrorWhenCanExecute()
+        {
+            var command = _commands
+                .Command(() => { }, () => throw new InvalidOperationException("Test"));
+            command.CanExecute(null);
+            Assert.True(command.HasError());
+        }
+        
+        [Fact]
         public void NoExceptionPropagatedFromGenericAction()
         {
             Exception expected = null;
@@ -97,6 +115,15 @@ namespace Dotnet.Commands.UnitTests
             
             Assert.Null(expected);
             Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public void HasErrorWhenGenericExecute()
+        {
+            var command = _commands
+                .Command<int>(_ => throw new InvalidOperationException("Test"));
+            command.Execute(0);
+            Assert.True(command.HasError());
         }
         
         [Fact]
@@ -142,6 +169,18 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public void HasErrorWhenGenericCanExecute()
+        {
+            var command = _commands
+                .Command<int>(
+                    _ => { },
+                    _ => throw new InvalidOperationException("Test")
+                );
+            command.CanExecute(0);
+            Assert.True(command.HasError());
+        }
+        
+        [Fact]
         public async Task NoExceptionPropagatedFromAsyncAction()
         {
             Exception expected = null;
@@ -158,6 +197,15 @@ namespace Dotnet.Commands.UnitTests
             
             Assert.Null(expected);
             Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public async Task HasErrorWhenAsyncExecute()
+        {
+            var command = _commands
+                .AsyncCommand(_ => throw new InvalidOperationException("Test"));
+            await command.ExecuteAsync();
+            Assert.True(command.HasError());
         }
         
         [Fact]
@@ -179,6 +227,28 @@ namespace Dotnet.Commands.UnitTests
             
             Assert.Null(expected);
             Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public async Task HasErrorWhenCanAsyncExecute()
+        {
+            var command = _commands
+                .AsyncCommand(
+                    () => Task.CompletedTask,
+                    () => throw new InvalidOperationException("Test"));
+            await command.ExecuteAsync();
+            Assert.True(command.HasError());
+        }
+        
+        [Fact]
+        public async Task HasErrorWhenAsyncCanExecute()
+        {
+            var command = _commands
+                .AsyncCommand<int?>(
+                    (i) => Task.CompletedTask,
+                    async (i) => throw new InvalidOperationException("Test"));
+            await command.ExecuteAsync();
+            Assert.True(command.HasError());
         }
         
         [Fact]

@@ -126,5 +126,35 @@ namespace Dotnet.Commands
                 name
             );
         }
+
+        public static bool HasError(this ICommand command)
+        {
+            if (command is SafeCommand safeCommand)
+            {
+                return safeCommand.Exception != null;
+            }
+
+            return false;
+        }
+        
+        public static bool HasError(this IAsyncCommand command)
+        {
+            if (command is SafeAsyncCommand<object> safeCommand)
+            {
+                return safeCommand.Exception != null;
+            }
+
+            return false;
+        }
+        
+        public static bool HasError<T>(this IAsyncCommand<T> command)
+        {
+            if (command is SafeAsyncCommand<T> safeCommand)
+            {
+                return safeCommand.Exception != null;
+            }
+
+            return false;
+        }
     }
 }
