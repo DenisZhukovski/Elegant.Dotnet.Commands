@@ -48,14 +48,37 @@ namespace Dotnet.Commands
             _cancellationTokenSource?.Cancel();
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
-            return _canExecute.CanExecute((TArgument)parameter);
+            if (parameter == null)
+            {
+                return _canExecute.CanExecute((TArgument?)parameter);
+            }
+
+            if (parameter is TArgument argument)
+            {
+                return _canExecute.CanExecute(argument);
+            }
+            return _canExecute.CanExecute((TArgument)Convert.ChangeType(parameter, typeof(TArgument)));
         }
 
         public void Execute(object parameter)
         {
-            Execute((TArgument)parameter);
+            if (parameter == null)
+            {
+                Execute((TArgument)parameter);
+            }
+            else
+            {
+                if (parameter is TArgument argument)
+                {
+                    Execute(argument);
+                }
+                else
+                {
+                    Execute((TArgument)Convert.ChangeType(parameter, typeof(TArgument)));
+                }
+            }
         }
 
         public void Execute(TArgument? parameter)
@@ -65,7 +88,17 @@ namespace Dotnet.Commands
 
         public Task<bool> ExecuteAsync(object? parameter)
         {
-            return ExecuteAsync((TArgument?)parameter);
+            if (parameter == null)
+            {
+                return ExecuteAsync((TArgument?)parameter);
+            }
+            
+            if (parameter is TArgument argument)
+            {
+                return ExecuteAsync(argument);
+            }
+
+            return ExecuteAsync((TArgument)Convert.ChangeType(parameter, typeof(TArgument)));
         }
 
         public async Task<bool> ExecuteAsync(TArgument? parameter)
