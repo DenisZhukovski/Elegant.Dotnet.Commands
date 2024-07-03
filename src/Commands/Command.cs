@@ -25,14 +25,37 @@ namespace Dotnet.Commands
             remove => _canExecute.CanExecuteChanged -= value;
         }
 
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
-            return _canExecute.CanExecute((TypeArgument)parameter);
+            if (parameter == null)
+            {
+                return _canExecute.CanExecute((TypeArgument?)parameter);
+            }
+
+            if (parameter is TypeArgument argument)
+            {
+                return _canExecute.CanExecute(argument);
+            }
+            return _canExecute.CanExecute((TypeArgument)Convert.ChangeType(parameter, typeof(TypeArgument)));
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
-            Execute((TypeArgument)parameter);
+            if (parameter == null)
+            {
+                Execute((TypeArgument)parameter);
+            }
+            else
+            {
+                if (parameter is TypeArgument argument)
+                {
+                    Execute(argument);
+                }
+                else
+                {
+                    Execute((TypeArgument)Convert.ChangeType(parameter, typeof(TypeArgument)));
+                }
+            }
         }
 
         protected void RaiseCanExecuteChanged()
