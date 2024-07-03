@@ -49,7 +49,7 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '$(solution)'
-- task: SonarCloudPrepare@1
+- task: SonarCloudPrepare@2
   inputs:
     SonarCloud: 'SonarCloud'
     organization: 'deniszhukovski'
@@ -80,8 +80,8 @@ steps:
     codeCoverageTool: Cobertura
     summaryFileLocation: '**/*.cobertura.xml'
 
-- task: SonarCloudAnalyze@1
-- task: SonarCloudPublish@1
+- task: SonarCloudAnalyze@2
+- task: SonarCloudPublish@2
   inputs:
     pollingTimeoutSec: '300'
 
