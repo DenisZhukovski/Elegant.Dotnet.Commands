@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Dotnet.Commands.UnitTests.Mocks;
 using Xunit;
 
@@ -109,13 +110,26 @@ namespace Dotnet.Commands.UnitTests
             Assert.Equal(13, expectedNumber);
         }
         
-        [Fact]
-        public void CommandExecutionWithParsedParameter()
+        [Theory]
+        [InlineData(13)]
+        [InlineData("13")]
+        public void CommandExecutionWithParsedParameter(object parameter)
         {
             int expectedNumber = 0;
             _commands
                 .Command<int>(number => expectedNumber = number)
-                .Execute("13");
+                .Execute(parameter);
+            Assert.Equal(13, expectedNumber);
+        }
+        
+        [Theory]
+        [InlineData(13)]
+        [InlineData((object)"13")]
+        public void CommandExecutionWithParsedParameterUsingInterface(object parameter)
+        {
+            int expectedNumber = 0;
+            ICommand command = _commands.Command<int>(number => expectedNumber = number);
+            command.Execute(parameter);
             Assert.Equal(13, expectedNumber);
         }
 
@@ -135,8 +149,10 @@ namespace Dotnet.Commands.UnitTests
             Assert.Equal(13, expectedNumber);
         }
         
-        [Fact]
-        public async Task AsyncCommandExecutionWithParsedParameter()
+        [Theory]
+        [InlineData(13)]
+        [InlineData((object)"13")]
+        public async Task AsyncCommandExecutionWithParsedParameter(object parameter)
         {
             int expectedNumber = 0;
             Assert.True(
@@ -146,7 +162,7 @@ namespace Dotnet.Commands.UnitTests
                         await Task.Delay(300);
                         expectedNumber = number;
                     })
-                    .ExecuteAsync("13")
+                    .ExecuteAsync(parameter)
             );
             Assert.Equal(13, expectedNumber);
         }
@@ -216,6 +232,28 @@ namespace Dotnet.Commands.UnitTests
                     .ExecuteAsync(12)
             );
             Assert.Equal(1, executionsCount);
+        }
+        
+        [Theory]
+        [InlineData(13)]
+        [InlineData("13")]
+        public void CanExecuteAsyncWithParsedParameter(object parameter)
+        {
+            int expectedNumber = 0;
+            Assert.True(
+                _commands
+                    .Command<int>(number => { }, number =>
+                    {
+                        expectedNumber = number;
+                        return true;
+                    })
+                    .CanExecute(parameter)
+            );
+            
+            Assert.Equal(
+                13,
+                expectedNumber
+            );
         }
         
         [Fact]

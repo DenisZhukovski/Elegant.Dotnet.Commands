@@ -38,11 +38,6 @@ namespace Dotnet.Commands
             remove => _canExecute.CanExecuteChanged -= value;
         }
 
-        void IAsyncCommand.RaiseCanExecuteChanged()
-        {
-            RaiseCanExecuteChanged();
-        }
-
         public void Cancel()
         {
             _cancellationTokenSource?.Cancel();
@@ -88,17 +83,12 @@ namespace Dotnet.Commands
 
         public Task<bool> ExecuteAsync(object? parameter)
         {
-            if (parameter == null)
+            return parameter switch
             {
-                return ExecuteAsync((TArgument?)parameter);
-            }
-            
-            if (parameter is TArgument argument)
-            {
-                return ExecuteAsync(argument);
-            }
-
-            return ExecuteAsync((TArgument)Convert.ChangeType(parameter, typeof(TArgument)));
+                null => ExecuteAsync((TArgument?)parameter),
+                TArgument argument => ExecuteAsync(argument),
+                _ => ExecuteAsync((TArgument)Convert.ChangeType(parameter, typeof(TArgument)))
+            };
         }
 
         public async Task<bool> ExecuteAsync(TArgument? parameter)
@@ -124,7 +114,7 @@ namespace Dotnet.Commands
             return canExecute;
         }
 
-        protected virtual void RaiseCanExecuteChanged()
+        public virtual void RaiseCanExecuteChanged()
         {
             _canExecute.RaiseCanExecuteChanged();
         }
