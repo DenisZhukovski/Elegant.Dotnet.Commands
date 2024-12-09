@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 
 namespace Dotnet.Commands
 {
@@ -22,7 +21,12 @@ namespace Dotnet.Commands
             add =>  _command.CanExecuteChanged += value;
             remove => _command.CanExecuteChanged -= value;
         }
-        
+
+        public void RaiseCanExecuteChanged()
+        {
+            _command.RaiseCanExecuteChanged();
+        }
+
         public Exception? Exception { get; private set; }
         
         public bool CanExecute(object parameter)

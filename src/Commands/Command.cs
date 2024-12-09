@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Input;
 
 namespace Dotnet.Commands
 {
@@ -58,7 +57,7 @@ namespace Dotnet.Commands
             }
         }
 
-        protected void RaiseCanExecuteChanged()
+        public void RaiseCanExecuteChanged()
         {
             _canExecute.RaiseCanExecuteChanged();
         }

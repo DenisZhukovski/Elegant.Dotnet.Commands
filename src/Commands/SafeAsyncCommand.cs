@@ -29,7 +29,7 @@ namespace Dotnet.Commands
 
         public Exception? Exception { get; private set; }
         
-        void IAsyncCommand.RaiseCanExecuteChanged()
+        public void RaiseCanExecuteChanged()
         {
             _command.RaiseCanExecuteChanged();
         }
