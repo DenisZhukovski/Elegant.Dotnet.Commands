@@ -41,6 +41,130 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public void NewSafeCommandsPriority()
+        {
+            Exception expected = null;
+            _commands
+                .Safe(ex => expected = ex)
+                .Command(() => throw new InvalidOperationException("Test"))
+                .Execute();
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Empty(_exceptions);
+        }
+        
+        [Fact]
+        public void NewSafeCommandPriority()
+        {
+            Exception expected = null;
+            _commands
+                .Command(() => throw new InvalidOperationException("Test"))
+                .Safe(ex => expected = ex)
+                .Execute();
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Empty(_exceptions);
+        }
+        
+        [Fact]
+        public async Task NewSafeCommandsButAsyncPriority()
+        {
+            Exception expected = null;
+            await _commands
+                .Safe(ex =>
+                {
+                    expected = ex;
+                    return true;
+                })
+                .AsyncCommand(() => throw new InvalidOperationException("Test"))
+                .ExecuteAsync(null);
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Empty(_exceptions);
+        }
+        
+        [Fact]
+        public async Task NewSafeAsyncCommandPriority()
+        {
+            Exception expected = null;
+            await _commands
+                .AsyncCommand(() => throw new InvalidOperationException("Test"))
+                .Safe(ex => expected = ex)
+                .ExecuteAsync(null);
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Empty(_exceptions);
+        }
+        
+        [Fact]
+        public void BaseSafeCommandsHandled()
+        {
+            Exception expected = null;
+            _commands
+                .Safe(ex =>
+                {
+                    expected = ex;
+                    return false;
+                })
+                .Command(() => throw new InvalidOperationException("Test"))
+                .Execute();
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public void BaseSafeCommandHandled()
+        {
+            Exception expected = null;
+            _commands
+                .Command(() => throw new InvalidOperationException("Test"))
+                .Safe((ex, name) =>
+                {
+                    expected = ex;
+                    return false;
+                })
+                .Execute();
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public async Task BaseSafeAsyncCommandsHandled()
+        {
+            Exception expected = null;
+            await _commands
+                .Safe(ex =>
+                {
+                    expected = ex;
+                    return false;
+                })
+                .AsyncCommand(() => throw new InvalidOperationException("Test"))
+                .ExecuteAsync();
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Single(_exceptions);
+        }
+        
+        [Fact]
+        public async Task BaseSafeAsyncCommandHandled()
+        {
+            Exception expected = null;
+            await _commands
+                .AsyncCommand(() => throw new InvalidOperationException("Test"))
+                .Safe((ex, name) =>
+                {
+                    expected = ex;
+                    return false;
+                })
+                .ExecuteAsync(null);
+            
+            Assert.IsType<InvalidOperationException>(expected);
+            Assert.Single(_exceptions);
+        }
+        
+        [Fact]
         public void UnsafeThrownException()
         {
             Assert.Throws<InvalidOperationException>(() =>
@@ -175,6 +299,15 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public void UnsafeDoesNotHaveError()
+        {
+            var command = _commands
+                .Command<int>(_ => throw new InvalidOperationException("Test"));
+            command.Execute(0);
+            Assert.False(command.Unsafe().HasError());
+        }
+        
+        [Fact]
         public void NoExceptionPropagatedFromCanExecuteDuringGenericExecution()
         {
             Exception expected = null;
@@ -270,12 +403,41 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public Task TwoTimesUnsafeStillThrowException()
+        {
+            return Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commands
+                    .AsyncCommand<int>((i) => throw new InvalidOperationException("Test"))
+                    .Unsafe().Unsafe()
+                    .ExecuteAsync(0)
+            );
+        }
+        
+        [Fact]
         public async Task HasErrorWhenAsyncExecute()
         {
             var command = _commands
                 .AsyncCommand(_ => throw new InvalidOperationException("Test"));
             await command.ExecuteAsync();
             Assert.True(command.HasError());
+        }
+        
+        [Fact]
+        public async Task HasErrorWhenGenericAsyncExecute()
+        {
+            var command = _commands
+                .AsyncCommand<int>(_ => throw new InvalidOperationException("Test"));
+            await command.ExecuteAsync(5);
+            Assert.True(command.HasError());
+        }
+        
+        [Fact]
+        public async Task UnsafeAsyncDoesNotHaveError()
+        {
+            var command = _commands
+                .AsyncCommand(_ => throw new InvalidOperationException("Test"));
+            await command.ExecuteAsync();
+            Assert.False(command.Unsafe().HasError());
         }
         
         [Fact]

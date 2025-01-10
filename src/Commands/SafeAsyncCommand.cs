@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -7,13 +8,13 @@ namespace Dotnet.Commands
     public class SafeAsyncCommand<TArgument> : IAsyncCommand<TArgument>
     {
         internal readonly IAsyncCommand _command;
-        private readonly Func<Exception, string?, bool> _onError;
+        internal readonly IList<Func<Exception, string?, bool>> _onError;
         private readonly string? _name;
 
 
         public SafeAsyncCommand(
             IAsyncCommand command,
-            Func<Exception, string?, bool> onError, 
+            IList<Func<Exception, string?, bool>> onError, 
             [CallerMemberName] string? name = null)
         {
             _command = command;
@@ -49,32 +50,28 @@ namespace Dotnet.Commands
             catch (Exception e)
             {
                 Exception = e;
-                if (!_onError(e, _name))
+                if (!e.TryToHandle(_onError, _name))
                 {
                     throw;
                 }
 
                 return false;
             }
-            
         }
 
         public void Execute(object? parameter)
         {
-            if (parameter == null)
+            switch (parameter)
             {
-                Execute((TArgument)parameter);
-            }
-            else
-            {
-                if (parameter is TArgument argument)
-                {
+                case null:
+                    Execute((TArgument)parameter);
+                    break;
+                case TArgument argument:
                     Execute(argument);
-                }
-                else
-                {
+                    break;
+                default:
                     Execute((TArgument)Convert.ChangeType(parameter, typeof(TArgument)));
-                }
+                    break;
             }
         }
 
@@ -85,17 +82,12 @@ namespace Dotnet.Commands
 
         public Task<bool> ExecuteAsync(object? parameter)
         {
-            if (parameter == null)
+            return parameter switch
             {
-                return ExecuteAsync((TArgument?)parameter);
-            }
-            
-            if (parameter is TArgument argument)
-            {
-                return ExecuteAsync(argument);
-            }
-
-            return ExecuteAsync((TArgument)Convert.ChangeType(parameter, typeof(TArgument)));
+                null => ExecuteAsync((TArgument?)parameter),
+                TArgument argument => ExecuteAsync(argument),
+                _ => ExecuteAsync((TArgument)Convert.ChangeType(parameter, typeof(TArgument)))
+            };
         }
 
         public async Task<bool> ExecuteAsync(TArgument? parameter)
@@ -108,7 +100,7 @@ namespace Dotnet.Commands
             catch (Exception e)
             {
                 Exception = e;
-                if (!_onError(e, _name))
+                if (!e.TryToHandle(_onError, _name))
                 {
                     throw;
                 }

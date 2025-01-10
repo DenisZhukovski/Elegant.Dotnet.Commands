@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,14 +10,20 @@ namespace Dotnet.Commands
 {
     public class SafeCommands : ICommands
     {
-        private readonly ICommands _commands;
-        private readonly Func<Exception, string?, bool> _onError;
-
         public SafeCommands(ICommands commands, Func<Exception, string?, bool> onError)
+            : this(commands, new List<Func<Exception, string?, bool>> { onError })
         {
-            _commands = commands;
-            _onError = onError;
         }
+
+        public SafeCommands(ICommands commands, IList<Func<Exception, string?, bool>> onError)
+        {
+            Commands = commands;
+            OnError = onError;
+        }
+        
+        internal IList<Func<Exception, string?, bool>> OnError { get; }
+        
+        internal ICommands Commands { get; }
 
         public IAsyncCommand AsyncCommand(
             Func<CancellationToken, Task> execute,
@@ -23,16 +31,12 @@ namespace Dotnet.Commands
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
-            return new SafeAsyncCommand<object>(
-                _commands.AsyncCommand(
-                    execute,
-                    canExecute,
-                    forceExecution,
-                    name
-                ),
-                _onError,
+            return Commands.AsyncCommand(
+                execute,
+                canExecute,
+                forceExecution,
                 name
-            );
+            ).Safe(OnError, name);
         }
 
         public IAsyncCommand<TParam> AsyncCommand<TParam>(
@@ -41,16 +45,12 @@ namespace Dotnet.Commands
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
-            return new SafeAsyncCommand<TParam>(
-                _commands.AsyncCommand(
-                    execute,
-                    canExecute,
-                    forceExecution,
-                    name
-                ),
-                _onError,
+            return Commands.AsyncCommand(
+                execute,
+                canExecute,
+                forceExecution,
                 name
-            );
+            ).Safe(OnError, name);
         }
 
         public IAsyncCommand<TParam> AsyncCommand<TParam>(
@@ -59,16 +59,12 @@ namespace Dotnet.Commands
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
-            return new SafeAsyncCommand<TParam>(
-                _commands.AsyncCommand(
-                    execute,
-                    canExecute,
-                    forceExecution,
-                    name
-                ),
-                _onError,
+            return Commands.AsyncCommand(
+                execute,
+                canExecute,
+                forceExecution,
                 name
-            );
+            ).Safe(OnError, name);
         }
 
         public ICommand Command(
@@ -77,16 +73,12 @@ namespace Dotnet.Commands
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
-            return new SafeCommand(
-                _commands.Command(
-                    execute,
-                    canExecute,
-                    forceExecution,
-                    name
-                ),
-                _onError,
+            return Commands.Command(
+                execute,
+                canExecute,
+                forceExecution,
                 name
-            );
+            ).Safe(OnError, name);
         }
 
         public ICommand Command<TParam>(
@@ -95,16 +87,12 @@ namespace Dotnet.Commands
             bool forceExecution = false,
             [CallerMemberName] string? name = null)
         {
-            return new SafeCommand(
-                _commands.Command(
-                    execute,
-                    canExecute,
-                    forceExecution,
-                    name
-                ),
-                _onError,
+            return Commands.Command(
+                execute,
+                canExecute,
+                forceExecution,
                 name
-            );
+            ).Safe(OnError, name);
         }
     }
 }

@@ -1,15 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Dotnet.Commands
 {
     public class SafeCommand : ICommand
     {
-        private readonly Func<Exception, string?, bool> _onError;
         private readonly string? _name;
+        internal readonly IList<Func<Exception, string?, bool>> _onError;
         internal readonly ICommand _command;
 
-        public SafeCommand(ICommand command, Func<Exception, string?, bool> onError, [CallerMemberName] string? name = null)
+        public SafeCommand(ICommand command, IList<Func<Exception, string?, bool>> onError, [CallerMemberName] string? name = null)
         {
             _command = command;
             _onError = onError;
@@ -39,7 +40,7 @@ namespace Dotnet.Commands
             catch (Exception e)
             {
                 Exception = e;
-                if (!_onError(e, _name))
+                if (!e.TryToHandle(_onError, _name))
                 {
                     throw;
                 }
@@ -58,7 +59,7 @@ namespace Dotnet.Commands
             catch (Exception e)
             {
                 Exception = e;
-                if (!_onError(e, _name))
+                if (!e.TryToHandle(_onError, _name))
                 {
                     throw;
                 }

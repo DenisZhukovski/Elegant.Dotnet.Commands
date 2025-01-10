@@ -26,34 +26,27 @@ namespace Dotnet.Commands
 
         public bool CanExecute(object? parameter)
         {
-            if (parameter == null)
+            return parameter switch
             {
-                return _canExecute.CanExecute((TypeArgument?)parameter);
-            }
-
-            if (parameter is TypeArgument argument)
-            {
-                return _canExecute.CanExecute(argument);
-            }
-            return _canExecute.CanExecute((TypeArgument)Convert.ChangeType(parameter, typeof(TypeArgument)));
+                null => _canExecute.CanExecute((TypeArgument?)parameter),
+                TypeArgument argument => _canExecute.CanExecute(argument),
+                _ => _canExecute.CanExecute((TypeArgument)Convert.ChangeType(parameter, typeof(TypeArgument)))
+            };
         }
 
         public void Execute(object? parameter)
         {
-            if (parameter == null)
+            switch (parameter)
             {
-                Execute((TypeArgument)parameter);
-            }
-            else
-            {
-                if (parameter is TypeArgument argument)
-                {
+                case null:
+                    Execute((TypeArgument)parameter);
+                    break;
+                case TypeArgument argument:
                     Execute(argument);
-                }
-                else
-                {
+                    break;
+                default:
                     Execute((TypeArgument)Convert.ChangeType(parameter, typeof(TypeArgument)));
-                }
+                    break;
             }
         }
 
