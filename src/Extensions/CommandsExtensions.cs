@@ -255,7 +255,7 @@ namespace Dotnet.Commands
             return new SafeCommand(command, onError, name);
         }
         
-        public static ICommand Safe(
+        public static IAsyncCommand Safe(
             this IAsyncCommand command,
             Action<Exception, string?> onError,
             [CallerMemberName] string? callerName = null)
@@ -270,7 +270,7 @@ namespace Dotnet.Commands
             );
         }
         
-        public static ICommand Safe(
+        public static IAsyncCommand Safe(
             this IAsyncCommand command,
             Action<Exception> onError,
             [CallerMemberName] string? callerName = null)
@@ -285,7 +285,7 @@ namespace Dotnet.Commands
             );
         }
         
-        public static ICommand Safe(
+        public static IAsyncCommand Safe(
             this IAsyncCommand command, 
             Func<Exception, string?, bool> onError,
             [CallerMemberName] string? name = null)
