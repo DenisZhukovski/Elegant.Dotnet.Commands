@@ -427,7 +427,7 @@ namespace Dotnet.Commands.UnitTests
         {
             var command = _commands
                 .AsyncCommand<int>(_ => throw new InvalidOperationException("Test"));
-            await command.ExecuteAsync();
+            await command.ExecuteAsync(5);
             Assert.True(command.HasError());
         }
         
