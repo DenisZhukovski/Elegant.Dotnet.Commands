@@ -299,6 +299,15 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public void UnsafeDoesNotHaveError()
+        {
+            var command = _commands
+                .Command<int>(_ => throw new InvalidOperationException("Test"));
+            command.Execute(0);
+            Assert.False(command.Unsafe().HasError());
+        }
+        
+        [Fact]
         public void NoExceptionPropagatedFromCanExecuteDuringGenericExecution()
         {
             Exception expected = null;
@@ -400,6 +409,15 @@ namespace Dotnet.Commands.UnitTests
                 .AsyncCommand(_ => throw new InvalidOperationException("Test"));
             await command.ExecuteAsync();
             Assert.True(command.HasError());
+        }
+        
+        [Fact]
+        public async Task UnsafeAsyncDoesNotHaveError()
+        {
+            var command = _commands
+                .AsyncCommand(_ => throw new InvalidOperationException("Test"));
+            await command.ExecuteAsync();
+            Assert.False(command.Unsafe().HasError());
         }
         
         [Fact]
