@@ -107,7 +107,7 @@ await asyncCommnad.ExecuteAsync(12);
 
 ## Safe commands
 
-Somethimes it can be handy to create a command and catch all the exceptions that can occur during execution. [SafeCommands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/SafeCommands.cs) factory decorator can be used to do so. The factory returns decorated command which has an extra Exception property which can be checked with HasError extensions method.
+Sometimes it can be handy to create a command and catch all the exceptions that can occur during execution. [SafeCommands](https://github.com/DenisZhukovski/Dotnet.Commands/blob/main/src/SafeCommands.cs) factory decorator can be used to do so. The factory returns decorated command which has an extra Exception property which can be checked with HasError extensions method.
 
 ```cs
 private ICommands _commands;
@@ -121,6 +121,8 @@ public ViewModel(ICommmands commands)
 }
 
 public ICommand FooCommand => _commands
+    // IMPORTANT: This safe method has a priority to the original Safe commands handler
+    // But operation will be passed to base handler once this cannot manager.
     .Safe(ex => {
         if (ex is ValidationException)
         {
