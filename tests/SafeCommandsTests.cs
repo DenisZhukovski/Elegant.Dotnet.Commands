@@ -403,10 +403,30 @@ namespace Dotnet.Commands.UnitTests
         }
         
         [Fact]
+        public Task TwoTimesUnsafeStillThrowException()
+        {
+            return Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _commands
+                    .AsyncCommand<int>((i) => throw new InvalidOperationException("Test"))
+                    .Unsafe().Unsafe()
+                    .ExecuteAsync(0)
+            );
+        }
+        
+        [Fact]
         public async Task HasErrorWhenAsyncExecute()
         {
             var command = _commands
                 .AsyncCommand(_ => throw new InvalidOperationException("Test"));
+            await command.ExecuteAsync();
+            Assert.True(command.HasError());
+        }
+        
+        [Fact]
+        public async Task HasErrorWhenGenericAsyncExecute()
+        {
+            var command = _commands
+                .AsyncCommand<int>(_ => throw new InvalidOperationException("Test"));
             await command.ExecuteAsync();
             Assert.True(command.HasError());
         }
