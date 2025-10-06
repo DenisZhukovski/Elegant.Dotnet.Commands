@@ -247,12 +247,12 @@ namespace Dotnet.Commands
             );
         }
         
-        public static IAsyncCommand Safe<T>(
+        public static IAsyncCommand Safe(
             this IAsyncCommand command, 
             Func<Exception, string?, bool> onError,
             [CallerMemberName] string? name = null)
         {
-            return command.Safe<T>(
+            return command.Safe<object>(
                 new List<Func<Exception, string?, bool>> { onError },
                 name
             );
