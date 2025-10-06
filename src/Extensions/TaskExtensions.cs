@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +14,24 @@ namespace Dotnet.Commands
             TaskScheduler.Default
         );
 
+        /// <summary>
+        /// Fires the <see cref="Task"/> and safely forget and in case of exception call <paramref name="onError"/> handler if any.
+        /// </summary>
+        /// <param name="task">The task.</param>
+        /// <param name="onError">The on error action handler.</param>
+        /// <param name="continueOnCapturedContext">sets ConfigureAwait argument.</param>
+        public static async void FireAndForget(this Task task, Action<Exception>? onError = null, bool continueOnCapturedContext = false)
+        {
+            try
+            {
+                await task.ConfigureAwait(continueOnCapturedContext);
+            }
+            catch (Exception ex)
+            {
+                onError?.Invoke(ex);
+            }
+        }
+        
         public static TResult RunSync<TResult>(this Func<Task<TResult>> func)
         {
             return TaskFactory

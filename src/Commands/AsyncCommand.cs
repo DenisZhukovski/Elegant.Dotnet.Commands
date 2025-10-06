@@ -57,7 +57,7 @@ namespace Dotnet.Commands
             return _canExecute.CanExecute((TArgument)Convert.ChangeType(parameter, typeof(TArgument)));
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
             if (parameter == null)
             {
@@ -78,7 +78,7 @@ namespace Dotnet.Commands
 
         public void Execute(TArgument? parameter)
         {
-            _ = ExecuteAsync(parameter);
+            ExecuteAsync(parameter).FireAndForget();
         }
 
         public Task<bool> ExecuteAsync(object? parameter)
@@ -93,6 +93,26 @@ namespace Dotnet.Commands
 
         public async Task<bool> ExecuteAsync(TArgument? parameter)
         {
+            var canExecute = await CanExecuteAsync(parameter).ConfigureAwait(false);
+            if (canExecute)
+            {
+                // Cancel the previous operation, if one is pending
+                _cancellationTokenSource?.Cancel();
+
+                var cancellationTokenSource = _cancellationTokenSource = new CancellationTokenSource();
+                await _action(parameter, cancellationTokenSource.Token).ConfigureAwait(false);
+            }
+
+            return canExecute;
+        }
+
+        public virtual void RaiseCanExecuteChanged()
+        {
+            _canExecute.RaiseCanExecuteChanged();
+        }
+        
+        private async Task<bool> CanExecuteAsync(TArgument? parameter)
+        {
             bool canExecute;
             if (_canExecute is ICanExecuteAsync<TArgument> canExecuteAsync)
             {
@@ -102,21 +122,8 @@ namespace Dotnet.Commands
             {
                 canExecute = _canExecute.CanExecute(parameter);
             }
-            if (canExecute)
-            {
-                // Cancel the previous operation, if one is pending
-                _cancellationTokenSource?.Cancel();
-
-                var cancellationTokenSource = _cancellationTokenSource = new CancellationTokenSource();
-                await _action(parameter, cancellationTokenSource.Token);
-            }
 
             return canExecute;
-        }
-
-        public virtual void RaiseCanExecuteChanged()
-        {
-            _canExecute.RaiseCanExecuteChanged();
         }
     }
 }

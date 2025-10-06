@@ -13,22 +13,22 @@ namespace Dotnet.Commands
         /// </summary>
         public static readonly int DefaultCommandExecutionInterval = 300;        
         
-        public static ICommands Locked(this ICommands commands)
+        public static LockedCommands Locked(this ICommands commands)
         {
             return commands.Locked(DefaultCommandExecutionInterval);
         }
         
-        public static ICommands Locked(this ICommands commands, int commandExecutionInterval)
+        public static LockedCommands Locked(this ICommands commands, int commandExecutionInterval)
         {
             return new LockedCommands(commands, commandExecutionInterval);
         }
         
-        public static ICommands Safe(this ICommands commands, Action<Exception> onError)
+        public static SafeCommands Safe(this ICommands commands, Action<Exception> onError)
         {
             return commands.Safe((exception, _) => onError(exception));
         }
         
-        public static ICommands Safe(this ICommands commands, Action<Exception, string?> onError)
+        public static SafeCommands Safe(this ICommands commands, Action<Exception, string?> onError)
         {
             return commands.Safe((exception, name) =>
             {
@@ -37,35 +37,41 @@ namespace Dotnet.Commands
             });
         }
         
-        public static ICommands Safe(this ICommands commands, Func<Exception, bool> onError)
+        public static SafeCommands Safe(this ICommands commands, Func<Exception, bool> onError)
         {
             return commands.Safe((exception, _) => onError(exception));
         }
         
-        public static ICommands Safe(this ICommands commands, Func<Exception, string?, bool> onError)
+        public static SafeCommands Safe(this ICommands commands, Func<Exception, string?, Task<bool>> onError)
         {
             _  = commands ?? throw new ArgumentNullException(nameof(commands));
             _  = onError ?? throw new ArgumentNullException(nameof(onError));
             if (commands is not SafeCommands safeCommands)
             {
-                return new SafeCommands(commands, onError);
+                return new SafeCommands(commands, new ErrorHandler(onError));
             }
             
-            // onError argument gets priority 
-            var newOnError = new List<Func<Exception, string?, bool>>
-            {
-                onError
-            };
-            newOnError.AddRange(safeCommands.OnError);
-            return new SafeCommands(safeCommands.Commands, newOnError);
+            return new SafeCommands(safeCommands.Commands, safeCommands.OnError.Add(onError));
         }
         
-        public static ICommands Cached(this ICommands commands)
+        public static SafeCommands Safe(this ICommands commands, Func<Exception, string?, bool> onError)
+        {
+            _  = commands ?? throw new ArgumentNullException(nameof(commands));
+            _  = onError ?? throw new ArgumentNullException(nameof(onError));
+            if (commands is not SafeCommands safeCommands)
+            {
+                return new SafeCommands(commands, new ErrorHandler(onError));
+            }
+            
+            return new SafeCommands(safeCommands.Commands, safeCommands.OnError.Add(onError));
+        }
+        
+        public static CachedCommands Cached(this ICommands commands)
         {
             return new CachedCommands(commands);
         }
 
-        public static ICommands Validated(this ICommands commands)
+        public static ValidatedCommands Validated(this ICommands commands)
         {
             return new ValidatedCommands(commands);
         }
@@ -174,7 +180,7 @@ namespace Dotnet.Commands
         {
             if (command is SafeCommand safeCommand)
             {
-                return safeCommand._command;
+                return safeCommand.Command;
             }
 
             return command;
@@ -184,7 +190,7 @@ namespace Dotnet.Commands
         {
             if (command is SafeAsyncCommand<object> safeCommand)
             {
-                return safeCommand._command;
+                return safeCommand.Command;
             }
 
             return command;
@@ -194,7 +200,7 @@ namespace Dotnet.Commands
         {
             if (command is SafeAsyncCommand<T> safeCommand)
             {
-                return safeCommand._command;
+                return safeCommand.Command;
             }
 
             return command;
@@ -241,6 +247,17 @@ namespace Dotnet.Commands
             );
         }
         
+        public static IAsyncCommand Safe<T>(
+            this IAsyncCommand command, 
+            Func<Exception, string?, bool> onError,
+            [CallerMemberName] string? name = null)
+        {
+            return command.Safe<T>(
+                new List<Func<Exception, string?, bool>> { onError },
+                name
+            );
+        }
+        
         public static ICommand Safe(
             this ICommand command,
             IList<Func<Exception, string?, bool>> onError,
@@ -248,25 +265,62 @@ namespace Dotnet.Commands
         {
             if (command is SafeCommand safeCommand)
             {
-                var newErrors = new List<Func<Exception, string?, bool>>(onError);
-                newErrors.AddRange(safeCommand._onError);
-                return new SafeCommand(safeCommand._command, newErrors, name);
+                return new SafeCommand(
+                    safeCommand.Command,
+                    safeCommand.OnError.Add(onError),
+                    name
+                );
             }
-            return new SafeCommand(command, onError, name);
+            
+            return new SafeCommand(
+                command,
+                new ErrorHandler(onError),
+                name
+            );
         }
         
-        public static IAsyncCommand Safe(
+        public static IAsyncCommand Safe<T>(
             this IAsyncCommand command,
-            Action<Exception, string?> onError,
-            [CallerMemberName] string? callerName = null)
+            IList<Func<Exception, string?, bool>> onError,
+            [CallerMemberName] string? name = null)
         {
-            return command.Safe(
-                (exception, name) =>
-                {
-                    onError(exception, name);
-                    return true;
-                },
-                callerName
+            if (command is SafeAsyncCommand<T> safeCommand)
+            {
+                return new SafeAsyncCommand<T>(
+                    safeCommand.Command,
+                    safeCommand.OnError.Add(onError),
+                    name
+                );
+            }
+            
+            return new SafeAsyncCommand<T>(
+                command,
+                new ErrorHandler(onError),
+                name
+            );
+        }
+        
+        public static ICommand Safe(
+            this ICommand command,
+            IErrorHandler onError,
+            [CallerMemberName] string? name = null)
+        {
+            if (command is SafeCommand safeCommand)
+            {
+                return new SafeCommand(
+                    safeCommand.Command,
+                    new MultiErrorHandler(
+                        safeCommand.OnError,
+                        onError
+                    ),
+                    name
+                );
+            }
+            
+            return new SafeCommand(
+                command,
+                onError,
+                name
             );
         }
         
@@ -279,7 +333,7 @@ namespace Dotnet.Commands
                 (exception, _) =>
                 {
                     onError(exception);
-                    return true;
+                    return Task.FromResult(true);
                 },
                 callerName
             );
@@ -287,31 +341,69 @@ namespace Dotnet.Commands
         
         public static IAsyncCommand Safe(
             this IAsyncCommand command, 
-            Func<Exception, string?, bool> onError,
+            Func<Exception, string?, Task<bool>> onError,
             [CallerMemberName] string? name = null)
         {
             return command.Safe(
-                new List<Func<Exception, string?, bool>> { onError },
+                new List<Func<Exception, string?, Task<bool>>> { onError },
                 name
             );
         }
         
         public static IAsyncCommand Safe(
             this IAsyncCommand command,
-            IList<Func<Exception, string?, bool>> onError,
+            IList<Func<Exception, string?, Task<bool>>> onError,
             [CallerMemberName] string? name = null)
         {
             if (command is SafeAsyncCommand<object> safeCommand)
             {
-                var newErrors = new List<Func<Exception, string?, bool>>(onError);
-                newErrors.AddRange(safeCommand._onError);
-                return new  SafeAsyncCommand<object>(safeCommand._command, newErrors, name);
+                return new SafeAsyncCommand<object>(safeCommand.Command,safeCommand.OnError.Add(onError), name);
+            }
+            
+            return new SafeAsyncCommand<object>(command, new ErrorHandler(onError), name);
+        }
+        
+        public static IAsyncCommand Safe(
+            this IAsyncCommand command,
+            IErrorHandler onError,
+            [CallerMemberName] string? name = null)
+        {
+            if (command is SafeAsyncCommand<object> safeCommand)
+            {
+                return new SafeAsyncCommand<object>(
+                    command,
+                    new MultiErrorHandler(
+                        safeCommand.OnError,
+                        onError
+                    ),
+                    name
+                );
             }
             
             return new SafeAsyncCommand<object>(command, onError, name);
         }
         
         public static IAsyncCommand<T> Safe<T>(
+            this IAsyncCommand<T> command,
+            IErrorHandler onError,
+            [CallerMemberName] string? name = null)
+        {
+            if (command is SafeAsyncCommand<T> safeCommand)
+            {
+                return new SafeAsyncCommand<T>(
+                    command,
+                    new MultiErrorHandler(
+                        safeCommand.OnError,
+                        onError
+                    ),
+                    name
+                );
+            }
+            
+            return new SafeAsyncCommand<T>(command, onError, name);
+        }
+        
+        public static SafeAsyncCommand<T> Safe<T>(
             this IAsyncCommand<T> command,
             Action<Exception, string?> onError,
             [CallerMemberName] string? callerName = null)
@@ -320,36 +412,34 @@ namespace Dotnet.Commands
                 (exception, name) =>
                 {
                     onError(exception, name);
-                    return true;
+                    return Task.FromResult(true);
                 },
                 callerName
             );
         }
         
-        public static IAsyncCommand<T> Safe<T>(
+        public static SafeAsyncCommand<T> Safe<T>(
             this IAsyncCommand<T> command, 
-            Func<Exception, string?, bool> onError,
+            Func<Exception, string?, Task<bool>> onError,
             [CallerMemberName] string? name = null)
         {
             return command.Safe(
-                new List<Func<Exception, string?, bool>> { onError },
+                new List<Func<Exception, string?, Task<bool>>> { onError },
                 name
             );
         }
         
-        public static IAsyncCommand<T> Safe<T>(
+        public static SafeAsyncCommand<T> Safe<T>(
             this IAsyncCommand<T> command,
-            IList<Func<Exception, string?, bool>> onError,
+            IList<Func<Exception, string?, Task<bool>>> onError,
             [CallerMemberName] string? name = null)
         {
             if (command is SafeAsyncCommand<T> safeCommand)
             {
-                var newErrors = new List<Func<Exception, string?, bool>>(onError);
-                newErrors.AddRange(safeCommand._onError);
-                return new  SafeAsyncCommand<T>(safeCommand._command, newErrors, name);
+                return new SafeAsyncCommand<T>(safeCommand.Command, safeCommand.OnError.Add(onError), name);
             }
             
-            return new SafeAsyncCommand<T>(command, onError, name);
+            return new SafeAsyncCommand<T>(command, new ErrorHandler(onError), name);
         }
     }
 }
