@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Dotnet.Commands
@@ -7,40 +6,40 @@ namespace Dotnet.Commands
     public class SafeCommand : ICommand
     {
         private readonly string? _name;
-        internal readonly IList<Func<Exception, string?, bool>> _onError;
-        internal readonly ICommand _command;
+        internal readonly IErrorHandler OnError;
+        internal readonly ICommand Command;
 
-        public SafeCommand(ICommand command, IList<Func<Exception, string?, bool>> onError, [CallerMemberName] string? name = null)
+        public SafeCommand(ICommand command, IErrorHandler onError, [CallerMemberName] string? name = null)
         {
-            _command = command;
-            _onError = onError;
+            Command = command;
+            OnError = onError;
             _name = name;
         }
         
         public event EventHandler? CanExecuteChanged
         {
-            add =>  _command.CanExecuteChanged += value;
-            remove => _command.CanExecuteChanged -= value;
+            add =>  Command.CanExecuteChanged += value;
+            remove => Command.CanExecuteChanged -= value;
         }
 
         public void RaiseCanExecuteChanged()
         {
-            _command.RaiseCanExecuteChanged();
+            Command.RaiseCanExecuteChanged();
         }
 
         public Exception? Exception { get; private set; }
         
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             try
             {
                 Exception = null;
-                return _command.CanExecute(parameter);
+                return Command.CanExecute(parameter);
             }
             catch (Exception e)
             {
                 Exception = e;
-                if (!e.TryToHandle(_onError, _name))
+                if (!OnError.Handle(e, _name))
                 {
                     throw;
                 }
@@ -49,17 +48,17 @@ namespace Dotnet.Commands
             }
         }
 
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
             try
             {
                 Exception = null;
-                _command.Execute(parameter);
+                Command.Execute(parameter);
             }
             catch (Exception e)
             {
                 Exception = e;
-                if (!e.TryToHandle(_onError, _name))
+                if (!OnError.Handle(e, _name))
                 {
                     throw;
                 }

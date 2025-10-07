@@ -1,18 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
+		<TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
         <Authors>Denis Zhukovski, Yauheni Puntus</Authors>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Version>1.1.15</Version>
+        <Version>1.1.16</Version>
         <Title>Dotnet Commands</Title>
         <Description>The repository implements Command pattern that usually used in .NET mobile projects supporting MVVM design pattern. The main goal is to provide an implementation for commands creation.</Description>
         <PackageId>Elegant.Dotnet.Commands</PackageId>
         <PackageProjectUrl>https://github.com/DenisZhukovski/Dotnet.Commands</PackageProjectUrl>
         <RepositoryUrl>https://github.com/DenisZhukovski/Dotnet.Commands</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageVersion>1.1.15</PackageVersion>
+        <PackageVersion>1.1.16</PackageVersion>
         <LangVersion>9.0</LangVersion>
 	</PropertyGroup>
 </Project>

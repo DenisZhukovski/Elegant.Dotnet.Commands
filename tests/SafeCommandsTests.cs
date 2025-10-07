@@ -8,7 +8,7 @@ namespace Dotnet.Commands.UnitTests
     public class SafeCommandsTests : CommandsCommonTests
     {
         private readonly List<Exception> _exceptions = new();
-        private readonly ICommands _commands;
+        private readonly SafeCommands _commands;
 
         public SafeCommandsTests()
             : this(new Commands().Validated())
